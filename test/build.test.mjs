@@ -11,7 +11,7 @@ build(data, { baseUrl: "https://mhradhp.github.io/dast2dast-site/", outDir: out 
 const read = (p) => readFileSync(join(out, p), "utf8");
 
 test("همه‌ی فایل‌ها ساخته می‌شوند", () => {
-  for (const p of ["index.html", "404.html", "b/1/index.html", "b/7/index.html", "sitemap.xml", "robots.txt", ".nojekyll", "assets/style.css", "assets/search.js", "assets/fonts/Vazirmatn.woff2", "googlefe73b4db30c39f30.html"]) {
+  for (const p of ["index.html", "404.html", "b/1/index.html", "b/7/index.html", "sitemap.xml", "robots.txt", ".nojekyll", "assets/style.css", "assets/search.js", "assets/fonts/Vazirmatn.woff2", "googlefe73b4db30c39f30.html", "scan/index.html", "scan/scan.js", "assets/vendor/zxing.min.js", "assets/vendor/ZXING-LICENSE.txt"]) {
     assert.ok(existsSync(join(out, p)), p);
   }
 });
@@ -42,6 +42,7 @@ test("JSON-LD کتاب با قیمت به ریال", () => {
   assert.equal(ld.offers.highPrice, 1_400_000);
   assert.equal(ld.offers.offerCount, 3);
   assert.equal(ld.offers.priceCurrency, "IRR");
+  assert.equal(ld.isbn, "9789643116446");
 });
 
 test("کتاب بدون آگهی: دعوت به درخواست، بدون offers", () => {

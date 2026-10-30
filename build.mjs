@@ -122,6 +122,7 @@ export function bookPage(ctx, b) {
     "@context": "https://schema.org",
     "@type": "Book",
     name: b.title,
+    ...(b.isbn ? { isbn: b.isbn } : {}),
     ...(b.author ? { author: { "@type": "Person", name: b.author } } : {}),
     ...(b.publisher ? { publisher: { "@type": "Organization", name: b.publisher } } : {}),
     inLanguage: "fa",

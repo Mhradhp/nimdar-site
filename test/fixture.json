@@ -4,7 +4,7 @@
   "bots": { "tg": "dast2dast_bot", "bale": null },
   "books": [
     {
-      "id": 1, "title": "المپیاد ریاضی - هندسه", "author": null, "publisher": "خوشخوان", "category": "olympiad",
+      "id": 1, "title": "المپیاد ریاضی - هندسه", "isbn": "9789643116446", "author": null, "publisher": "خوشخوان", "category": "olympiad",
       "subject": null, "grade": null, "validity_note": null, "waiting": 2,
       "listings": [
         { "condition": "clean", "edition_year": 1402, "price": 100000, "swappable": 0, "in_person": 1, "by_post": 1, "city": "تهران", "district": "ونک", "seller_rating": { "avg": 4.5, "count": 2 }, "created_at": "2026-10-29 10:00:00" },

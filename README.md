@@ -8,6 +8,7 @@
 
 - `build.mjs`: سازنده‌ی سایت؛ بدون هیچ وابستگی خارجی (فقط Node 20 به بالا)
 - `assets/`: استایل، جستجوی سمت مرورگر، و فونت وزیرمتن (مجوز OFL در `assets/fonts/OFL.txt`)
+- `static/scan/`: صفحه‌ی اسکن بارکد شابک (Mini App تلگرام). پردازش در خود گوشی؛ اول `BarcodeDetector` داخلی، وگرنه ZXing از `assets/vendor/` (مجوز Apache-2.0)
 - `static/`: فایل‌هایی که عیناً در ریشه‌ی سایت قرار می‌گیرند (فایل تأیید Google Search Console)
 - `.github/workflows/pages.yml`: ساخت شبانه و انتشار
 

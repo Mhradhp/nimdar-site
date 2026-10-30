@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>اسکن بارکد | دست‌به‌دست</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1F5C46">
+<link rel="stylesheet" href="../assets/style.css">
+<style>
+  .scan main { padding-top: 12px; }
+  .viewer { position: relative; border-radius: 16px; overflow: hidden; background: #000; aspect-ratio: 4 / 3; }
+  .viewer video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .frame {
+    position: absolute; inset: 30% 10%;
+    border: 3px solid rgba(255, 255, 255, 0.9); border-radius: 10px;
+    box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.35);
+  }
+  .frame::after { content: ""; position: absolute; inset: 50% 6% auto; height: 2px; background: var(--orange); }
+  #status { min-height: 1.8em; }
+  #manual { display: grid; gap: 8px; margin-top: 16px; }
+  #manual input { font: inherit; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; direction: ltr; text-align: center; letter-spacing: 1px; }
+  #manual button { border: 0; font: inherit; cursor: pointer; }
+  .ok { background: var(--green-bg); border-radius: 12px; padding: 12px 14px; }
+  .err { color: var(--orange); }
+</style>
+</head>
+<body class="scan">
+<main>
+  <h1>اسکن بارکد کتاب</h1>
+  <p class="muted">بارکد پشت کتاب رو داخل کادر بگیر. نور کافی کمک می‌کنه.</p>
+  <div class="viewer" id="viewer">
+    <video id="video" playsinline muted autoplay></video>
+    <div class="frame"></div>
+  </div>
+  <p id="status" class="muted" role="status">در حال روشن کردن دوربین…</p>
+
+  <form id="manual" autocomplete="off">
+    <label for="isbn">یا شابک رو تایپ کن (عددهای زیر بارکد):</label>
+    <input id="isbn" inputmode="numeric" placeholder="978-600-..." aria-describedby="manual-err">
+    <span id="manual-err" class="err small" hidden>این شابک درست نیست؛ یه بار دیگه عددها رو چک کن.</span>
+    <button class="btn" type="submit">ادامه</button>
+  </form>
+
+  <div id="result" class="ok" hidden>
+    <p>شابک: <strong id="result-isbn" dir="ltr"></strong></p>
+    <p class="small">این‌جا بیرون از تلگرامه. این عدد رو کپی کن و توی ربات، موقع «ثبت کتاب» به‌جای اسم کتاب بفرست.</p>
+  </div>
+</main>
+<script src="scan.js"></script>
+</body>
+</html>
