@@ -10,8 +10,35 @@ import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
-export const CATEGORIES = { olympiad: "المپیاد", konkur: "کنکور", school: "درسی", helper: "کمک‌درسی", general: "عمومی" };
-const CONDITIONS = { new: "نو", like_new: "در حد نو", clean: "تمیز", marked: "نوشته‌دار" };
+// همان فهرست‌های src/bot/taxonomy.ts در مخزن ربات؛ کلیدها باید یکی بمانند
+export const CATEGORIES = {
+  olympiad: "المپیاد",
+  konkur: "کنکور",
+  school: "درسی (مدرسه)",
+  helper: "کمک‌درسی",
+  university: "دانشگاهی",
+  language: "زبان خارجی",
+  novel: "رمان و داستان",
+  literature: "شعر و ادبیات",
+  history: "تاریخ و جامعه",
+  philosophy: "فلسفه و روان‌شناسی",
+  selfhelp: "خودیاری و موفقیت",
+  kids: "کودک و نوجوان",
+  science: "علمی و عمومی",
+  art: "هنر",
+  computer: "کامپیوتر و برنامه‌نویسی",
+  general: "سایر",
+};
+const CONDITIONS = {
+  new: "نو (آکبند)",
+  like_new: "در حد نو",
+  clean: "تمیز",
+  used: "کارکرده",
+  marked: "نوشته‌دار یا هایلایت‌شده",
+  worn: "فرسوده",
+};
+/** کد عمومی کاربر (همان کد معرف)؛ قبل از ساختن مسیر فایل چک می‌شود */
+const CODE_RE = /^[A-Z0-9]{4,12}$/;
 
 // ---------- helpers ----------
 
@@ -49,7 +76,7 @@ function botLinks(bots, start) {
 
 // ---------- pages ----------
 
-function layout(ctx, { title, description, path, body, jsonld }) {
+function layout(ctx, { title, description, path, body, jsonld, noindex }) {
   const canonical = ctx.baseUrl + path;
   return `<!doctype html>
 <html lang="fa" dir="rtl">
@@ -59,6 +86,7 @@ function layout(ctx, { title, description, path, body, jsonld }) {
 <title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${esc(canonical)}">
+${noindex ? '<meta name="robots" content="noindex">' : ""}
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fa_IR">
 <meta property="og:title" content="${esc(title)}">
@@ -91,10 +119,11 @@ function ctaButtons(ctx, start, label) {
     .join("")}</div>`;
 }
 
-function listingItem(l, i) {
+function listingItem(ctx, l, i) {
   const parts = [
     CONDITIONS[l.condition] ?? l.condition,
     l.edition_year ? `چاپ ${fa(l.edition_year)}` : null,
+    l.has_answers === 1 ? "با پاسخنامه" : l.has_answers === 0 ? "بدون پاسخنامه" : null,
     [l.city, l.district].filter(Boolean).join("، ") || null,
     l.in_person && l.by_post ? "حضوری و پستی" : l.by_post ? "پستی" : "حضوری",
   ].filter(Boolean);
@@ -108,7 +137,12 @@ function listingItem(l, i) {
   const rating = l.seller_rating
     ? `<span class="rating" title="امتیاز فروشنده">★${fa(String(l.seller_rating.avg).replace(".", "٫"))} (${fa(l.seller_rating.count)})</span>`
     : "";
-  return `<li class="listing"><span class="num">${fa(i + 1)}</span><div><strong>${esc(p)}</strong> ${rating}<br><span class="muted">${esc(parts.join(" · "))}</span></div></li>`;
+  // فقط فروشنده‌ای که خودش پروفایل عمومی خواسته و تأیید شده لینک دارد
+  const seller = l.seller && ctx.profiles.get(l.seller);
+  const sellerHtml = seller
+    ? `<br><span class="muted small">فروشنده: <a href="${ctx.base}/u/${esc(seller.code)}/">«${esc(seller.nickname)}»</a></span>`
+    : "";
+  return `<li class="listing"><span class="num">${fa(i + 1)}</span><div><strong>${esc(p)}</strong> ${rating}<br><span class="muted">${esc(parts.join(" · "))}</span>${sellerHtml}</div></li>`;
 }
 
 export function bookPage(ctx, b) {
@@ -161,7 +195,7 @@ ${typical !== null ? `<div><b>${esc(price(typical))}</b><span>قیمت معمو�
 </div>
 ${
   has
-    ? `<h2>آگهی‌ها</h2><ol class="listings">${b.listings.map(listingItem).join("")}</ol>
+    ? `<h2>آگهی‌ها</h2><ol class="listings">${b.listings.map((l, i) => listingItem(ctx, l, i)).join("")}</ol>
 ${ctaButtons(ctx, `b_${b.id}`, "پیام به فروشنده")}
 <p class="muted small">گفتگو با فروشنده از طریق ربات انجام می‌شه؛ آیدی و شماره‌ی کسی نمایش داده نمی‌شه.</p>`
     : `<p class="empty">فعلاً کسی این کتاب رو نداره. درخواست بده تا به محض ثبت شدنش خبرت کنیم.</p>
@@ -221,6 +255,43 @@ ${
   });
 }
 
+/** صفحه‌ی عمومی قفسه‌ی یک کاربر (فقط کسی که خودش خواسته و ادمین تأیید کرده) */
+export function profilePage(ctx, p, books) {
+  const mine = [];
+  for (const b of books) for (const l of b.listings) if (l.seller === p.code) mine.push({ b, l });
+  const rating = p.rating ? `★${fa(String(p.rating.avg).replace(".", "٫"))} (${fa(p.rating.count)} رأی)` : null;
+  const facts = [p.city, rating, p.stats?.sold ? `${fa(p.stats.sold)} فروش` : null, p.stats?.given ? `${fa(p.stats.given)} اهدا` : null].filter(Boolean);
+  const body = `
+<nav class="crumbs"><a href="${ctx.base}/">همه‌ی کتاب‌ها</a></nav>
+<article class="book">
+<h1>قفسه‌ی «${esc(p.nickname)}»</h1>
+${facts.length ? `<p class="muted">${esc(facts.join(" · "))}</p>` : ""}
+${p.badges?.length ? `<p class="tags">${p.badges.map((x) => `<span>${esc(x)}</span>`).join("")}</p>` : ""}
+${p.bio ? `<p>${esc(p.bio)}</p>` : ""}
+<h2>کتاب‌ها</h2>
+${
+  mine.length
+    ? `<ul class="cards">${mine
+        .map(
+          ({ b, l }) =>
+            `<li class="card"><a href="${ctx.base}/b/${b.id}/"><strong>${esc(b.title)}</strong><span class="muted">${esc(
+              [CONDITIONS[l.condition], l.city].filter(Boolean).join(" · "),
+            )}</span><span class="supply">${esc(l.gift ? "رایگان (کتاب معلق)" : l.price === null ? "فقط تبادل" : price(l.price))}</span></a></li>`,
+        )
+        .join("")}</ul>`
+    : `<p class="empty">فعلاً کتابی توی این قفسه نیست.</p>`
+}
+${ctaButtons(ctx, `u_${p.code}`, "دیدن قفسه")}
+</article>`;
+  return layout(ctx, {
+    title: `قفسه‌ی «${p.nickname}» | دست‌به‌دست`,
+    description: `کتاب‌های دست‌دوم «${p.nickname}» در دست‌به‌دست.`,
+    path: `/u/${p.code}/`,
+    body,
+    noindex: true, // برای اشتراک‌گذاری است، نه گوگل؛ بیشتر کاربرها دانش‌آموزند
+  });
+}
+
 function notFound(ctx) {
   return layout(ctx, {
     title: "صفحه پیدا نشد | دست‌به‌دست",
@@ -249,6 +320,7 @@ export function build(data, { baseUrl, outDir }) {
     base: url.pathname.replace(/\/$/, ""), // مثلاً /dast2dast-site برای سایت پروژه‌ی گیت‌هاب
     bots: data.bots ?? {},
     generatedAt: data.generated_at,
+    profiles: new Map((data.profiles ?? []).filter((p) => CODE_RE.test(p.code ?? "")).map((p) => [p.code, p])),
   };
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(join(outDir, "b"), { recursive: true });
@@ -262,9 +334,13 @@ export function build(data, { baseUrl, outDir }) {
     mkdirSync(join(outDir, "b", String(b.id)), { recursive: true });
     writeFileSync(join(outDir, "b", String(b.id), "index.html"), bookPage(ctx, b));
   }
+  for (const p of ctx.profiles.values()) {
+    mkdirSync(join(outDir, "u", p.code), { recursive: true });
+    writeFileSync(join(outDir, "u", p.code, "index.html"), profilePage(ctx, p, data.books));
+  }
   writeFileSync(join(outDir, "sitemap.xml"), sitemap(ctx, data.books));
   writeFileSync(join(outDir, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${ctx.baseUrl}/sitemap.xml\n`);
-  return { pages: data.books.length + 1 };
+  return { pages: data.books.length + ctx.profiles.size + 1 };
 }
 
 async function main() {

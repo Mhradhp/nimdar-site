@@ -95,3 +95,25 @@ test("سایت روی ریشه‌ی دامنه هم درست ساخته می‌�
   assert.match(html, /href="\/assets\/style\.css"/);
   assert.match(html, /<link rel="canonical" href="https:\/\/dastbedast\.ir\/b\/1\/">/);
 });
+
+test("دسته‌ها، وضعیت‌ها و پاسخنامه‌ی تازه", () => {
+  const html = read("b/1/index.html");
+  assert.match(html, /با پاسخنامه/);
+  assert.match(read("b/7/index.html"), /<span>کنکور<\/span><span>شیمی<\/span><span>دهم<\/span>/);
+});
+
+test("پروفایل عمومی: صفحه‌ی قفسه با noindex، لینک از آگهی، بیرون از sitemap", () => {
+  const html = read("u/ABC234/index.html");
+  assert.match(html, /قفسه‌ی «سارا &lt;b&gt;»/);
+  assert.match(html, /<meta name="robots" content="noindex">/);
+  assert.match(html, /دوازدهم تجربی/);
+  assert.match(html, /<span>پیشگام<\/span>/);
+  assert.match(html, /★۴٫۵ \(۲ رأی\)/);
+  assert.match(html, /href="\/dast2dast-site\/b\/1\/"/);
+  assert.match(html, /start=u_ABC234/);
+  assert.match(read("b/1/index.html"), /فروشنده: <a href="\/dast2dast-site\/u\/ABC234\/">«سارا &lt;b&gt;»<\/a>/);
+  assert.doesNotMatch(read("sitemap.xml"), /\/u\//);
+  // کد نامعتبر هیچ فایلی بیرون از پوشه نمی‌سازد
+  assert.ok(!existsSync(join(out, "u", "../evil")));
+  assert.ok(!existsSync(join(out, "evil")));
+});
