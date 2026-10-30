@@ -9,7 +9,8 @@
       "listings": [
         { "condition": "clean", "edition_year": 1402, "price": 100000, "swappable": 0, "in_person": 1, "by_post": 1, "city": "تهران", "district": "ونک", "seller_rating": { "avg": 4.5, "count": 2 }, "created_at": "2026-10-29 10:00:00" },
         { "condition": "like_new", "edition_year": null, "price": 140000, "swappable": 1, "in_person": 1, "by_post": 0, "city": "مشهد", "district": null, "seller_rating": null, "created_at": "2026-10-29 11:00:00" },
-        { "condition": "marked", "edition_year": 1399, "price": null, "swappable": 1, "in_person": 0, "by_post": 1, "city": "تهران", "district": null, "seller_rating": null, "created_at": "2026-10-29 12:00:00" }
+        { "condition": "marked", "edition_year": 1399, "price": null, "swappable": 1, "in_person": 0, "by_post": 1, "city": "تهران", "district": null, "seller_rating": null, "created_at": "2026-10-29 12:00:00" },
+        { "condition": "clean", "edition_year": null, "price": null, "swappable": 0, "gift": 1, "in_person": 1, "by_post": 0, "city": "قم", "district": null, "seller_rating": null, "created_at": "2026-10-29 13:00:00" }
       ]
     },
     {

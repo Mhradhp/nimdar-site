@@ -20,7 +20,8 @@ test("صفحه‌ی کتاب: آمار، قیمت معمول، آگهی‌ها �
   const html = read("b/1/index.html");
   assert.match(html, /<html lang="fa" dir="rtl">/);
   assert.match(html, /<title>المپیاد ریاضی - هندسه دست‌دوم \| دست‌به‌دست<\/title>/);
-  assert.match(html, /<b>۳<\/b><span>نسخه موجود/);
+  assert.match(html, /<b>۴<\/b><span>نسخه موجود/);
+  assert.match(html, /رایگان \(کتاب معلق\)/);
   assert.match(html, /<b>۲<\/b><span>نفر منتظرند/);
   assert.match(html, /قیمت معمول/);
   assert.match(html, /۱۲۰٬۰۰۰ تومان/); // میانه‌ی ۱۰۰ و ۱۴۰ هزار
@@ -40,7 +41,7 @@ test("JSON-LD کتاب با قیمت به ریال", () => {
   assert.equal(ld["@type"], "Book");
   assert.equal(ld.offers.lowPrice, 1_000_000);
   assert.equal(ld.offers.highPrice, 1_400_000);
-  assert.equal(ld.offers.offerCount, 3);
+  assert.equal(ld.offers.offerCount, 4);
   assert.equal(ld.offers.priceCurrency, "IRR");
   assert.equal(ld.isbn, "9789643116446");
 });
@@ -64,7 +65,7 @@ test("متن کاربر escape می‌شود (XSS)", () => {
 test("صفحه‌ی اصلی: کتاب دارای آگهی اول، کلید جستجو، فیلتر دسته", () => {
   const html = read("index.html");
   assert.ok(html.indexOf("/b/1/") < html.indexOf("/b/7/"));
-  assert.match(html, /۳ نسخه · از ۱۰۰٬۰۰۰ تومان · ۲ منتظر/);
+  assert.match(html, /۴ نسخه · از ۱۰۰٬۰۰۰ تومان · کتاب معلق · ۲ منتظر/);
   assert.match(html, /هنوز کسی نداره · ۵ منتظر/);
   assert.match(html, /data-cat="olympiad"/);
   assert.match(html, /<button class="chip" data-cat="konkur">کنکور<\/button>/);

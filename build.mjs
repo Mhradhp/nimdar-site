@@ -98,7 +98,13 @@ function listingItem(l, i) {
     [l.city, l.district].filter(Boolean).join("، ") || null,
     l.in_person && l.by_post ? "حضوری و پستی" : l.by_post ? "پستی" : "حضوری",
   ].filter(Boolean);
-  const p = l.price === null ? "فقط تبادل" : l.swappable ? `${price(l.price)} یا تبادل` : price(l.price);
+  const p = l.gift
+    ? "رایگان (کتاب معلق)"
+    : l.price === null
+      ? "فقط تبادل"
+      : l.swappable
+        ? `${price(l.price)} یا تبادل`
+        : price(l.price);
   const rating = l.seller_rating
     ? `<span class="rating" title="امتیاز فروشنده">★${fa(String(l.seller_rating.avg).replace(".", "٫"))} (${fa(l.seller_rating.count)})</span>`
     : "";
@@ -106,7 +112,7 @@ function listingItem(l, i) {
 }
 
 export function bookPage(ctx, b) {
-  const prices = b.listings.filter((l) => l.price !== null).map((l) => l.price);
+  const prices = b.listings.filter((l) => l.price !== null && !l.gift).map((l) => l.price);
   const typical = median(prices);
   const meta = [b.author && `نویسنده: ${b.author}`, b.publisher && `ناشر: ${b.publisher}`].filter(Boolean).join(" · ");
   const tags = [CATEGORIES[b.category], b.subject, b.grade].filter(Boolean);
@@ -176,8 +182,9 @@ export function indexPage(ctx, books) {
   const cats = Object.entries(CATEGORIES).filter(([k]) => books.some((b) => b.category === k));
   const card = (b) => {
     const prices = b.listings.filter((l) => l.price !== null).map((l) => l.price);
+    const gifts = b.listings.filter((l) => l.gift).length;
     const supply = b.listings.length
-      ? `${fa(b.listings.length)} نسخه${prices.length ? ` · از ${price(Math.min(...prices))}` : ""}`
+      ? `${fa(b.listings.length)} نسخه${prices.length ? ` · از ${price(Math.min(...prices))}` : ""}${gifts ? " · کتاب معلق" : ""}`
       : "هنوز کسی نداره";
     const key = searchKey([b.title, b.author, b.publisher].filter(Boolean).join(" "));
     return `<li class="card" data-q="${esc(key)}" data-cat="${esc(b.category ?? "")}"><a href="${ctx.base}/b/${b.id}/">
