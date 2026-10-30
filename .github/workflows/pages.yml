@@ -1,0 +1,50 @@
+# هر شب سایت را از روی داده‌ی تازه‌ی ربات می‌سازد و روی GitHub Pages منتشر می‌کند.
+# پیش‌نیاز (یک بار): Settings → Pages → Source: GitHub Actions
+name: Build site
+
+on:
+  schedule:
+    - cron: "40 20 * * *" # هر شب ۰۰:۱۰ تهران
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Build
+        run: node build.mjs --out dist
+        env:
+          # آدرس Worker را می‌شود با متغیر CATALOG_URL در تنظیمات مخزن عوض کرد (مثلاً بعد از گرفتن دامنه)
+          CATALOG_URL: ${{ vars.CATALOG_URL || 'https://dast2dast.mehrwdhp8603.workers.dev/api/catalog.json' }}
+          BASE_URL: ${{ vars.BASE_URL || steps.pages.outputs.base_url }}
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

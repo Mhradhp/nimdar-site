@@ -1,0 +1,12 @@
+{
+  "name": "dast2dast-site",
+  "private": true,
+  "type": "module",
+  "description": "سایت ثابت دست‌به‌دست: یک صفحه برای هر کتاب",
+  "scripts": {
+    "build": "node build.mjs",
+    "preview": "node build.mjs --in test/fixture.json --out dist",
+    "test": "node --test test/build.test.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

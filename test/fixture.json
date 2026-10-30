@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "generated_at": "2026-10-30T18:00:00.000Z",
+  "bots": { "tg": "dast2dast_bot", "bale": null },
+  "books": [
+    {
+      "id": 1, "title": "المپیاد ریاضی - هندسه", "author": null, "publisher": "خوشخوان", "category": "olympiad",
+      "subject": null, "grade": null, "validity_note": null, "waiting": 2,
+      "listings": [
+        { "condition": "clean", "edition_year": 1402, "price": 100000, "swappable": 0, "in_person": 1, "by_post": 1, "city": "تهران", "district": "ونک", "seller_rating": { "avg": 4.5, "count": 2 }, "created_at": "2026-10-29 10:00:00" },
+        { "condition": "like_new", "edition_year": null, "price": 140000, "swappable": 1, "in_person": 1, "by_post": 0, "city": "مشهد", "district": null, "seller_rating": null, "created_at": "2026-10-29 11:00:00" },
+        { "condition": "marked", "edition_year": 1399, "price": null, "swappable": 1, "in_person": 0, "by_post": 1, "city": "تهران", "district": null, "seller_rating": null, "created_at": "2026-10-29 12:00:00" }
+      ]
+    },
+    {
+      "id": 7, "title": "شیمی دهم <script>alert(1)</script>", "author": "علی \"رضایی\"", "publisher": "خیلی سبز", "category": "konkur",
+      "subject": "شیمی", "grade": "دهم", "validity_note": "معتبر برای کنکور ۱۴۰۶", "waiting": 5, "listings": []
+    }
+  ]
+}
