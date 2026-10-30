@@ -11,7 +11,7 @@ build(data, { baseUrl: "https://mhradhp.github.io/dast2dast-site/", outDir: out 
 const read = (p) => readFileSync(join(out, p), "utf8");
 
 test("همه‌ی فایل‌ها ساخته می‌شوند", () => {
-  for (const p of ["index.html", "404.html", "b/1/index.html", "b/7/index.html", "sitemap.xml", "robots.txt", ".nojekyll", "assets/style.css", "assets/search.js", "assets/fonts/Vazirmatn.woff2"]) {
+  for (const p of ["index.html", "404.html", "b/1/index.html", "b/7/index.html", "sitemap.xml", "robots.txt", ".nojekyll", "assets/style.css", "assets/search.js", "assets/fonts/Vazirmatn.woff2", "googlefe73b4db30c39f30.html"]) {
     assert.ok(existsSync(join(out, p)), p);
   }
 });

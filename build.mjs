@@ -4,7 +4,7 @@
 //   CATALOG_URL=https://.../api/catalog.json BASE_URL=https://user.github.io/repo node build.mjs
 //   node build.mjs --in test/fixture.json --out dist   (بدون شبکه)
 // هیچ وابستگی خارجی ندارد تا روی هر سرور (حتی داخل ایران) با یک Node ساده ساخته شود.
-import { cpSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -245,6 +245,8 @@ export function build(data, { baseUrl, outDir }) {
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(join(outDir, "b"), { recursive: true });
   cpSync(join(HERE, "assets"), join(outDir, "assets"), { recursive: true });
+  // فایل‌هایی که باید عیناً در ریشه‌ی سایت باشند (مثلاً فایل تأیید Google Search Console)
+  if (existsSync(join(HERE, "static"))) cpSync(join(HERE, "static"), outDir, { recursive: true });
   writeFileSync(join(outDir, ".nojekyll"), "");
   writeFileSync(join(outDir, "index.html"), indexPage(ctx, data.books));
   writeFileSync(join(outDir, "404.html"), notFound(ctx));
