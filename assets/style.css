@@ -458,3 +458,5 @@ input[type="search"]#q:focus { outline: 3px solid rgba(31, 92, 70, 0.2); border-
   .sell.wide .cta { justify-content: center; }
   .mascot.side { max-width: 90px; }
 }
+.say.first { background: var(--green-bg); border-radius: var(--radius); padding: 24px; margin-top: 20px; }
+.say.first p { margin: 0; font-size: 17px; }

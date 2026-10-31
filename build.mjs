@@ -413,7 +413,11 @@ ${
     : ""
 }
 <p id="none" class="empty" hidden>چیزی پیدا نشد. توی ربات «کتابم نیست؟» رو بزن تا به محض ثبت شدنش خبرت کنیم.</p>
-<ul id="books-list" class="cards">${sorted.map((b) => bookCard(ctx, b)).join("")}</ul>
+${
+  sorted.length
+    ? `<ul id="books-list" class="cards">${sorted.map((b) => bookCard(ctx, b)).join("")}</ul>`
+    : `<div class="say first">${mascot(ctx, "hello", "زبری دست تکان می‌دهد")}<div><p><b>هنوز کتابی ثبت نشده؛ اولین نفر تو باش!</b><br>کتابت رو زیر یک دقیقه ثبت کن تا اولین آگهی دست‌به‌دست مال تو باشه.</p>${ctaButtons(ctx, "sell", "ثبت اولین کتاب")}</div></div>`
+}
 </div></section>
 
 ${
@@ -430,7 +434,7 @@ ${ctaButtons(ctx, "sell", "کتاب دارم، ثبتش می‌کنم")}
 }
 
 <section class="band" id="how"><div class="wrap">
-<div class="sec-head center"><div><p class="kicker">چطور کار می‌کنه</p><h2>سه قدم تا کتابی که می‌خوای</h2></div></div>
+<div class="sec-head center"><div><p class="kicker">چطور کار می‌کنه</p><h2>چهار قدم تا کتابی که می‌خوای</h2></div></div>
 <ol class="steps">
 <li>${sticker("handoff")}<b>کتابت رو ثبت کن</b><span>اسم یا بارکد کتاب رو بده، وضعیت و قیمت رو بزن. زیر یک دقیقه.</span></li>
 <li>${sticker("found")}<b>دنبال کتابی؟ درخواست بده</b><span>نبود؟ ثبتش کن؛ به محض اینکه کسی بذاره، خبرت می‌کنیم.</span></li>

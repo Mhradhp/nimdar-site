@@ -187,3 +187,11 @@ test("گورخر دست‌به‌دست: تصویر اشتراک، favicon، و 
   assert.match(read("b/7/index.html"), /assets\/mascot\/notfound\.webp/);
   for (const f of ["mascot/banner.webp", "mascot/oops.webp", "mascot/sticker/hello.webp", "brand/og.jpg", "brand/favicon.png", "fonts/Lalezar.woff2"]) assert.ok(existsSync(join(out, "assets", f)), f);
 });
+
+test("کاتالوگ خالی: صفحه‌ی اصلی پیام «اولین نفر تو باش» دارد", () => {
+  const dir = mkdtempSync(join(tmpdir(), "site-empty-"));
+  build({ version: 1, generated_at: "2026-10-31T00:00:00Z", bots: { tg: "x_bot" }, books: [] }, { baseUrl: "https://a.b/", outDir: dir });
+  const html = readFileSync(join(dir, "index.html"), "utf8");
+  assert.match(html, /اولین نفر تو باش/);
+  assert.match(html, /start=sell/);
+});
