@@ -7,7 +7,7 @@ import { build, searchKey } from "../build.mjs";
 
 const data = JSON.parse(readFileSync(new URL("./fixture.json", import.meta.url), "utf8"));
 const out = mkdtempSync(join(tmpdir(), "site-"));
-build(data, { baseUrl: "https://mhradhp.github.io/dast2dast-site/", outDir: out });
+build(data, { baseUrl: "https://mhradhp.github.io/nimdar-site/", outDir: out });
 const read = (p) => readFileSync(join(out, p), "utf8");
 
 test("همه‌ی فایل‌ها ساخته می‌شوند", () => {
@@ -19,7 +19,7 @@ test("همه‌ی فایل‌ها ساخته می‌شوند", () => {
 test("صفحه‌ی کتاب: آمار، قیمت معمول، آگهی‌ها و لینک ربات", () => {
   const html = read("b/1/index.html");
   assert.match(html, /<html lang="fa" dir="rtl">/);
-  assert.match(html, /<title>المپیاد ریاضی - هندسه دست‌دوم \| دست‌به‌دست<\/title>/);
+  assert.match(html, /<title>المپیاد ریاضی - هندسه دست‌دوم \| نیمدار<\/title>/);
   assert.match(html, /<b>۴<\/b><span>نسخه موجود/);
   assert.match(html, /رایگان \(کتاب معلق\)/);
   assert.match(html, /<b>۲<\/b><span>نفر منتظرند/);
@@ -31,8 +31,8 @@ test("صفحه‌ی کتاب: آمار، قیمت معمول، آگهی‌ها �
   assert.match(html, /href="https:\/\/t\.me\/dast2dast_bot\?start=b_1"/);
   assert.match(html, /href="https:\/\/t\.me\/dast2dast_bot\?start=sell"/);
   assert.doesNotMatch(html, /ble\.ir/); // ربات بله تنظیم نشده
-  assert.match(html, /<link rel="canonical" href="https:\/\/mhradhp\.github\.io\/dast2dast-site\/b\/1\/">/);
-  assert.match(html, /href="\/dast2dast-site\/assets\/style\.css"/);
+  assert.match(html, /<link rel="canonical" href="https:\/\/mhradhp\.github\.io\/nimdar-site\/b\/1\/">/);
+  assert.match(html, /href="\/nimdar-site\/assets\/style\.css"/);
 });
 
 test("JSON-LD کتاب با قیمت به ریال", () => {
@@ -74,9 +74,9 @@ test("صفحه‌ی اصلی: کتاب دارای آگهی اول، کلید ج�
 
 test("sitemap و robots", () => {
   const sm = read("sitemap.xml");
-  assert.match(sm, /<loc>https:\/\/mhradhp\.github\.io\/dast2dast-site\/b\/7\/<\/loc>/);
+  assert.match(sm, /<loc>https:\/\/mhradhp\.github\.io\/nimdar-site\/b\/7\/<\/loc>/);
   assert.match(sm, /<lastmod>2026-10-30<\/lastmod>/);
-  assert.match(read("robots.txt"), /Sitemap: https:\/\/mhradhp\.github\.io\/dast2dast-site\/sitemap\.xml/);
+  assert.match(read("robots.txt"), /Sitemap: https:\/\/mhradhp\.github\.io\/nimdar-site\/sitemap\.xml/);
 });
 
 test("کلید جستجو: ی/ک عربی، نیم‌فاصله و فاصله", () => {
@@ -109,9 +109,9 @@ test("پروفایل عمومی: صفحه‌ی قفسه با noindex، لینک 
   assert.match(html, /دوازدهم تجربی/);
   assert.match(html, /<span>پیشگام<\/span>/);
   assert.match(html, /★۴٫۵ \(۲ رأی\)/);
-  assert.match(html, /href="\/dast2dast-site\/b\/1\/"/);
+  assert.match(html, /href="\/nimdar-site\/b\/1\/"/);
   assert.match(html, /start=u_ABC234/);
-  assert.match(read("b/1/index.html"), /فروشنده: <a href="\/dast2dast-site\/u\/ABC234\/">«سارا &lt;b&gt;»<\/a>/);
+  assert.match(read("b/1/index.html"), /فروشنده: <a href="\/nimdar-site\/u\/ABC234\/">«سارا &lt;b&gt;»<\/a>/);
   assert.doesNotMatch(read("sitemap.xml"), /\/u\//);
   // کد نامعتبر هیچ فایلی بیرون از پوشه نمی‌سازد
   assert.ok(!existsSync(join(out, "u", "../evil")));
@@ -135,7 +135,7 @@ test("صفحه‌های فهرست: دسته، پایه، شهر و تابلوی
   assert.ok(!existsSync(join(out, "c", "novel")), "دسته‌ی بدون کتاب صفحه ندارد");
   const tehran = read("city/تهران/index.html");
   assert.match(tehran, /<h1>کتاب دست‌دوم در تهران<\/h1>/);
-  assert.match(tehran, /href="\/dast2dast-site\/b\/1\/"/);
+  assert.match(tehran, /href="\/nimdar-site\/b\/1\/"/);
   assert.doesNotMatch(tehran, /\/b\/7\//);
   const wanted = read("wanted/index.html");
   assert.ok(wanted.indexOf("/b/7/") < wanted.indexOf("/b/1/"), "بیشترین منتظر اول");
@@ -145,7 +145,7 @@ test("صفحه‌های فهرست: دسته، پایه، شهر و تابلوی
   assert.match(sm, /\/city\/%D8%AA%D9%87%D8%B1%D8%A7%D9%86\//);
   const home = read("index.html");
   assert.match(home, /مرور کتاب‌ها/);
-  assert.match(home, /href="\/dast2dast-site\/city\/%D9%85%D8%B4%D9%87%D8%AF\/">مشهد<\/a>/);
+  assert.match(home, /href="\/nimdar-site\/city\/%D9%85%D8%B4%D9%87%D8%AF\/">مشهد<\/a>/);
 });
 
 test("slug فقط حرف و عدد نگه می‌دارد", async () => {
@@ -177,11 +177,11 @@ test("پروفایل عمومی تعداد کتاب‌های خوانده‌شد
   assert.match(read(`u/${code}/index.html`), /امسال ۷ کتاب خونده/);
 });
 
-test("گورخر دست‌به‌دست: تصویر اشتراک، favicon، و تصویر در ۴۰۴ و صفحه‌ی بدون آگهی", () => {
+test("فندق و لوگوی نیمدار: تصویر اشتراک، favicon، و تصویر در ۴۰۴ و صفحه‌ی بدون آگهی", () => {
   const home = read("index.html");
-  assert.match(home, /og:image" content="https:\/\/mhradhp\.github\.io\/dast2dast-site\/assets\/brand\/og\.jpg"/);
-  assert.match(home, /rel="icon" type="image\/png" href="\/dast2dast-site\/assets\/brand\/favicon\.png"/);
-  assert.match(home, /class="wm">دست<span class="wm-be">/);
+  assert.match(home, /og:image" content="https:\/\/mhradhp\.github\.io\/nimdar-site\/assets\/brand\/og\.jpg"/);
+  assert.match(home, /rel="icon" type="image\/png" href="\/nimdar-site\/assets\/brand\/favicon\.png"/);
+  assert.match(home, /class="wm"><span class="wm-be">نیم<\/span>دار/);
   assert.match(home, /assets\/mascot\/banner\.webp/);
   assert.match(read("404.html"), /assets\/mascot\/oops\.webp/);
   assert.match(read("b/7/index.html"), /assets\/mascot\/notfound\.webp/);
@@ -200,4 +200,13 @@ test("آگهی ویژه برچسب «⭐ ویژه» دارد", () => {
   const html = read("b/1/index.html");
   assert.equal((html.match(/class="featured"/g) ?? []).length, 1);
   assert.match(html, /listing is-featured/);
+});
+
+test("تا تصویرهای فندق آماده نیستند (mascot: false) هیچ تصویر شخصیتی در سایت نیست", () => {
+  const dir = mkdtempSync(join(tmpdir(), "site-nomascot-"));
+  build({ ...data, mascot: false }, { baseUrl: "https://a.b/", outDir: dir });
+  for (const f of ["index.html", "404.html", "b/7/index.html", "wanted/index.html"]) {
+    assert.doesNotMatch(readFileSync(join(dir, f), "utf8"), /assets\/mascot/, f);
+  }
+  assert.match(readFileSync(join(dir, "index.html"), "utf8"), /class="hero-logo"/);
 });

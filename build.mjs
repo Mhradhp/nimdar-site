@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// سایت ثابت دست‌به‌دست: از داده‌ی عمومی ربات (/api/catalog.json) برای هر کتاب یک صفحه می‌سازد.
+// سایت ثابت نیمدار: از داده‌ی عمومی ربات (/api/catalog.json) برای هر کتاب یک صفحه می‌سازد.
 // استفاده:
 //   CATALOG_URL=https://.../api/catalog.json BASE_URL=https://user.github.io/repo node build.mjs
 //   node build.mjs --in test/fixture.json --out dist   (بدون شبکه)
@@ -76,14 +76,15 @@ function botLinks(bots, start) {
 
 // ---------- pages ----------
 
-/** تصویر گورخر دست‌به‌دست (assets/mascot/<name>.webp)؛ متن alt برای دسترس‌پذیری و گوگل */
+/** تصویر فندق، سنجاب نیمدار (assets/mascot/<name>.webp)؛ تا تصویرهای فندق آماده نشده‌اند (ctx.mascot خاموش) چیزی نشان داده نمی‌شود. متن alt برای دسترس‌پذیری و گوگل */
 function mascot(ctx, name, alt, cls = "mascot", size = 160) {
+  if (!ctx.mascot) return "";
   return `<img class="${cls}" src="${ctx.base}/assets/mascot/${name}.webp" width="${size}" height="${size}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
 }
 
 /** لوگوی نوشتاری با فونت لاله‌زار؛ «به» نارنجی */
 function wordmark() {
-  return `<span class="wm">دست<span class="wm-be">‌به‌</span>دست</span>`;
+  return `<span class="wm"><span class="wm-be">نیم</span>دار</span>`;
 }
 
 /** دکمه‌ی «ثبت کتاب» در سربرگ (به ربات تلگرام) */
@@ -133,7 +134,7 @@ function layout(ctx, { title, description, path, body, jsonld, noindex, full }) 
 ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fa_IR">
-<meta property="og:site_name" content="دست‌به‌دست">
+<meta property="og:site_name" content="نیمدار">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(canonical)}">
@@ -152,7 +153,7 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(
 <a class="skip" href="#main">رفتن به محتوا</a>
 <div class="topline"><div class="wrap">⚡ ثبت آگهی همیشه رایگانه · 🔔 کتابت نبود؟ درخواست بده، به محض اومدنش خبرت می‌کنیم${ch[0] ? ` · <a href="${esc(ch[0].url)}" rel="noopener">📣 ${esc(ch[0].label)}</a>` : ""}</div></div>
 <header class="bar"><div class="wrap top">
-<a class="brand" href="${ctx.base}/" aria-label="دست‌به‌دست، صفحه‌ی اصلی">${wordmark()}</a>
+<a class="brand" href="${ctx.base}/" aria-label="نیمدار، صفحه‌ی اصلی">${wordmark()}</a>
 <nav class="nav" aria-label="اصلی">${navLinks}</nav>
 <div class="bar-end">${navCta(ctx)}
 <details class="menu"><summary aria-label="منو"><span></span><span></span><span></span></summary><nav class="menu-panel" aria-label="منوی موبایل">${navLinks}${ch.map((c) => `<a href="${esc(c.url)}" rel="noopener">📣 ${esc(c.label)}</a>`).join("")}</nav></details>
@@ -163,16 +164,16 @@ ${full ? body : `<div class="wrap page">${body}</div>`}
 </main>
 <footer class="foot">
 <div class="wrap foot-cta">
-<img src="${ctx.base}/assets/mascot/hello.webp" width="120" height="120" alt="زبری، گورخر دست‌به‌دست" loading="lazy">
+${ctx.mascot ? `<img src="${ctx.base}/assets/mascot/hello.webp" width="120" height="120" alt="فندق، سنجاب نیمدار" loading="lazy">` : ""}
 <div><b>کتابی داری که دیگه لازمش نداری؟</b><p>زیر یک دقیقه ثبتش کن؛ کسی که منتظرشه همون لحظه خبردار می‌شه.</p></div>
 ${ctaButtons(ctx, "sell", "ثبت رایگان کتاب")}
 </div>
 <div class="wrap foot-grid">
-<div class="foot-brand">${wordmark()}<p>بازار کتاب دست‌دوم المپیاد، کنکور، درسی و هر کتاب دیگه. یک صفحه برای هر کتاب، نه یک پست برای هر آگهی.</p>
+<div class="foot-brand">${wordmark()}<p class="tagline">کتاب دست‌به‌دست</p><p>بازار کتاب دست‌دوم المپیاد، کنکور، درسی و هر کتاب دیگه. یک صفحه برای هر کتاب، نه یک پست برای هر آگهی.</p>
 <p class="socials">${bot ? `<a href="${esc(bot.url)}" rel="nofollow">🤖 ربات ${esc(bot.label)}</a>` : ""}${ch.map((c) => `<a href="${esc(c.url)}" rel="noopener">📣 ${esc(c.label)}</a>`).join("")}</p></div>
 ${cats.length ? `<div><h3>دسته‌ها</h3><ul>${cats.slice(0, 8).map(([k, v]) => `<li><a href="${ctx.base}/c/${k}/">${esc(v)}</a></li>`).join("")}</ul></div>` : ""}
 ${cities.length ? `<div><h3>شهرها</h3><ul>${cities.slice(0, 8).map((c) => `<li><a href="${ctx.base}${encodeURI(`/city/${slug(c)}/`)}">${esc(c)}</a></li>`).join("")}</ul></div>` : ""}
-<div><h3>دست‌به‌دست</h3><ul><li><a href="${ctx.base}/wanted/">کتاب‌هایی که خریدار دارن</a></li><li><a href="${ctx.base}/#how">چطور کار می‌کنه</a></li><li><a href="${ctx.base}/#gift">کتاب معلق</a></li><li><a href="${ctx.base}/#safe">معامله‌ی امن</a></li><li><a href="${ctx.base}/#faq">سؤالات پرتکرار</a></li><li><a href="${ctx.base}/scan/">اسکن بارکد</a></li></ul></div>
+<div><h3>نیمدار</h3><ul><li><a href="${ctx.base}/wanted/">کتاب‌هایی که خریدار دارن</a></li><li><a href="${ctx.base}/#how">چطور کار می‌کنه</a></li><li><a href="${ctx.base}/#gift">کتاب معلق</a></li><li><a href="${ctx.base}/#safe">معامله‌ی امن</a></li><li><a href="${ctx.base}/#faq">سؤالات پرتکرار</a></li><li><a href="${ctx.base}/scan/">اسکن بارکد</a></li></ul></div>
 </div>
 <div class="foot-bottom"><div class="wrap">
 <p class="foot-note">⚠️ قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکنید. · فایل PDF کتاب ممنوعه. · به‌روزرسانی: ${esc(persianDate(ctx.generatedAt))}</p>
@@ -230,7 +231,7 @@ function readerTags(b) {
 /** پرسش و پاسخ‌هایی که ادمین تأیید کرده؛ پرسیدن و جواب دادن فقط از راه ربات */
 function qaSection(ctx, b) {
   const qa = b.qa ?? [];
-  const art = mascot(ctx, "thinking", "گورخر دست‌به‌دست فکر می‌کند", "mascot side", 110);
+  const art = mascot(ctx, "thinking", "فندق، سنجاب نیمدار، فکر می‌کند", "mascot side", 110);
   const ask = ctaButtons(ctx, `b_${b.id}`, "سؤال بپرس");
   if (!qa.length) return `<h2>پرسش و پاسخ</h2>${art}<p class="muted">هنوز سؤالی پرسیده نشده. سؤالت رو از ربات بپرس تا کسانی که این کتاب رو داشتن جواب بدن.</p>${ask}`;
   return `<h2>پرسش و پاسخ</h2>
@@ -248,7 +249,7 @@ export function bookPage(ctx, b) {
   const description = has
     ? `${b.title}${b.publisher ? ` (${b.publisher})` : ""} دست‌دوم: ${fa(b.listings.length)} نسخه${
         prices.length ? ` از ${price(Math.min(...prices))}` : ""
-      }. خرید، فروش و تبادل کتاب دست‌دوم در دست‌به‌دست.`
+      }. خرید، فروش و تبادل کتاب دست‌دوم در نیمدار.`
     : `${b.title}${b.publisher ? ` (${b.publisher})` : ""} دست‌دوم: ${fa(b.waiting)} نفر منتظر این کتاب‌اند. اگر داری، رایگان ثبتش کن.`;
 
   const jsonld = {
@@ -292,7 +293,7 @@ ${
     ? `<h2>آگهی‌ها</h2><ol class="listings">${b.listings.map((l, i) => listingItem(ctx, l, i)).join("")}</ol>
 ${ctaButtons(ctx, `b_${b.id}`, "پیام به فروشنده")}
 <p class="muted small">گفتگو با فروشنده از طریق ربات انجام می‌شه؛ آیدی و شماره‌ی کسی نمایش داده نمی‌شه.</p>`
-    : `<div class="say">${mascot(ctx, "notfound", "گورخر دست‌به‌دست شانه بالا می‌اندازد")}<p class="empty">فعلاً کسی این کتاب رو نداره. درخواست بده تا به محض ثبت شدنش خبرت کنیم.</p></div>
+    : `<div class="say">${mascot(ctx, "notfound", "فندق، سنجاب نیمدار، شانه بالا می‌اندازد")}<p class="empty">فعلاً کسی این کتاب رو نداره. درخواست بده تا به محض ثبت شدنش خبرت کنیم.</p></div>
 ${ctaButtons(ctx, `b_${b.id}`, "دنبال این کتابم")}`
 }
 ${readerTags(b)}
@@ -305,7 +306,7 @@ ${qaSection(ctx, b)}
 ${ctaButtons(ctx, `b_${b.id}`, has ? "خرید" : "درخواست")}
 </div>
 <section class="sell">
-${mascot(ctx, "handoff", "گورخر دست‌به‌دست کتابی را به دست دیگری می‌دهد", "mascot", 120)}
+${mascot(ctx, "handoff", "فندق، سنجاب نیمدار، کتابی را به دست دیگری می‌دهد", "mascot", 120)}
 <p>این کتاب رو داری؟ ثبت آگهی رایگانه${b.waiting ? ` و ${fa(b.waiting)} نفر همین الان منتظرشن` : ""}.</p>
 ${ctaButtons(ctx, "sell", "ثبت کتاب")}
 </section>
@@ -313,7 +314,7 @@ ${ctaButtons(ctx, "sell", "ثبت کتاب")}
 </aside>
 </div>`;
 
-  return layout(ctx, { title: `${b.title} دست‌دوم | دست‌به‌دست`, description, path: `/b/${b.id}/`, body, jsonld, full: true });
+  return layout(ctx, { title: `${b.title} دست‌دوم | نیمدار`, description, path: `/b/${b.id}/`, body, jsonld, full: true });
 }
 
 const CAT_ICON = {
@@ -363,7 +364,7 @@ export function indexPage(ctx, books) {
   const giftCount = books.reduce((s, b) => s + b.listings.filter((l) => l.gift).length, 0);
   const wanted = books.filter((b) => b.waiting > 0 && !b.listings.length).sort((a, b) => b.waiting - a.waiting || a.id - b.id).slice(0, 6);
   const ch = channelLinks(ctx);
-  const sticker = (n, alt = "") => `<img src="${ctx.base}/assets/mascot/${n}.webp" width="96" height="96" alt="${esc(alt)}" loading="lazy" decoding="async">`;
+  const sticker = (n, alt = "") => !ctx.mascot ? "" : `<img src="${ctx.base}/assets/mascot/${n}.webp" width="96" height="96" alt="${esc(alt)}" loading="lazy" decoding="async">`;
   const body = `
 <section class="hero"><div class="wrap hero-in">
 <div class="hero-text">
@@ -374,7 +375,7 @@ export function indexPage(ctx, books) {
 ${ctaButtons(ctx, "sell", "ثبت رایگان کتاب")}
 </div>
 <div class="hero-art-wrap">
-<img class="hero-art" src="${ctx.base}/assets/mascot/banner.webp" width="825" height="407" alt="زبری، گورخر دست‌به‌دست، در کتابخانه دست تکان می‌دهد">
+${ctx.mascot ? `<img class="hero-art" src="${ctx.base}/assets/mascot/banner.webp" width="825" height="407" alt="فندق، سنجاب نیمدار، در کتابخانه دست تکان می‌دهد">` : `<div class="hero-logo">${wordmark()}<span class="hero-tag">کتاب دست‌به‌دست</span></div>`}
 <div class="float f1">🔔 یه نفر منتظر همین کتابه!</div>
 <div class="float f2">✅ معامله انجام شد</div>
 </div>
@@ -417,14 +418,14 @@ ${
 ${
   sorted.length
     ? `<ul id="books-list" class="cards">${sorted.map((b) => bookCard(ctx, b)).join("")}</ul>`
-    : `<div class="say first">${mascot(ctx, "hello", "زبری دست تکان می‌دهد")}<div><p><b>هنوز کتابی ثبت نشده؛ اولین نفر تو باش!</b><br>کتابت رو زیر یک دقیقه ثبت کن تا اولین آگهی دست‌به‌دست مال تو باشه.</p>${ctaButtons(ctx, "sell", "ثبت اولین کتاب")}</div></div>`
+    : `<div class="say first">${mascot(ctx, "hello", "فندق دست تکان می‌دهد")}<div><p><b>هنوز کتابی ثبت نشده؛ اولین نفر تو باش!</b><br>کتابت رو زیر یک دقیقه ثبت کن تا اولین آگهی نیمدار مال تو باشه.</p>${ctaButtons(ctx, "sell", "ثبت اولین کتاب")}</div></div>`
 }
 </div></section>
 
 ${
   wanted.length
     ? `<section class="band band-orange"><div class="wrap wanted-in">
-<div class="wanted-text">${sticker("search", "زبری با ذره‌بین")}
+<div class="wanted-text">${sticker("search", "فندق با ذره‌بین")}
 <p class="kicker">تقاضای واقعی</p><h2>این کتاب‌ها خریدار دارن، ولی هنوز کسی نداره</h2>
 <p>اگه یکی‌شون رو داری، همین الان ثبتش کن؛ منتظرها همون لحظه خبردار می‌شن.</p>
 ${ctaButtons(ctx, "sell", "کتاب دارم، ثبتش می‌کنم")}
@@ -457,7 +458,7 @@ ${ctaButtons(ctx, "sell", "کتاب دارم، ثبتش می‌کنم")}
 </div></section>
 
 <section class="band band-green" id="gift"><div class="wrap split">
-<img class="split-art" src="${ctx.base}/assets/mascot/gift.webp" width="320" height="320" alt="زبری کتابی را هدیه می‌دهد" loading="lazy">
+${ctx.mascot ? `<img class="split-art" src="${ctx.base}/assets/mascot/gift.webp" width="320" height="320" alt="فندق کتابی را هدیه می‌دهد" loading="lazy">` : `<div class="split-icon">🎁</div>`}
 <div>
 <p class="kicker">کتاب معلق</p>
 <h2>کتابی که دیگه لازم نداری، می‌تونه آینده‌ی یکی دیگه رو بسازه</h2>
@@ -467,7 +468,7 @@ ${ctaButtons(ctx, "sell", "اهدای کتاب")}
 </div></section>
 
 <section class="band" id="safe"><div class="wrap split rev">
-<img class="split-art" src="${ctx.base}/assets/mascot/thinking.webp" width="320" height="320" alt="زبری فکر می‌کند" loading="lazy">
+${ctx.mascot ? `<img class="split-art" src="${ctx.base}/assets/mascot/thinking.webp" width="320" height="320" alt="فندق فکر می‌کند" loading="lazy">` : `<div class="split-icon">🛡</div>`}
 <div>
 <p class="kicker">معامله‌ی امن</p>
 <h2>چند نکته که همیشه یادت باشه</h2>
@@ -480,15 +481,15 @@ ${ctaButtons(ctx, "sell", "اهدای کتاب")}
 </div>
 </div></section>
 
-<section class="band band-ink"><div class="wrap zebri">
-<div class="zebri-text">
-<p class="kicker">با زبری آشنا شو</p>
-<h2>زبری، گورخرِ کتاب‌بازِ دست‌به‌دست</h2>
-<p>توی ربات و کانال همراهته: کتاب پیدا شد خبرت می‌کنه، معامله که شد باهات جشن می‌گیره.</p>
+${ctx.mascot ? `<section class="band band-ink"><div class="wrap buddy">
+<div class="buddy-text">
+<p class="kicker">با فندق آشنا شو</p>
+<h2>فندق، سنجابِ کتاب‌جمع‌کنِ نیمدار</h2>
+<p>سنجاب‌ها فندق جمع می‌کنن، فندق کتاب! توی ربات و کانال همراهته: کتاب پیدا شد خبرت می‌کنه، معامله که شد باهات جشن می‌گیره.</p>
 <div class="cta">${botLinks(ctx.bots, "start").map((l) => `<a class="btn" href="${esc(l.url)}" rel="nofollow">شروع در ${l.label}</a>`).join("")}${ch.map((c) => `<a class="btn btn-ghost" href="${esc(c.url)}" rel="noopener">📣 ${esc(c.label)}</a>`).join("")}</div>
 </div>
-<div class="zebri-row">${["hello", "found", "deal", "reading", "magic", "price"].map((n) => sticker(n)).join("")}</div>
-</div></section>
+<div class="buddy-row">${["hello", "found", "deal", "reading", "magic", "price"].map((n) => sticker(n)).join("")}</div>
+</div></section>` : ""}
 
 <section class="band band-white" id="faq"><div class="wrap faq-wrap">
 <div class="sec-head"><div><p class="kicker">سؤالات پرتکرار</p><h2>هر چی باید بدونی</h2></div></div>
@@ -498,7 +499,7 @@ ${ctaButtons(ctx, "sell", "اهدای کتاب")}
 <div class="wrap">${browseNav(ctx, books)}</div>
 <script src="${ctx.base}/assets/search.js" defer></script>`;
   return layout(ctx, {
-    title: "دست‌به‌دست | خرید، فروش و تبادل کتاب دست‌دوم",
+    title: "نیمدار | خرید، فروش و تبادل کتاب دست‌دوم",
     description: `${fa(books.length)} کتاب دست‌دوم المپیاد، کنکور، درسی و عمومی. ثبت آگهی رایگان، گفتگوی امن با فروشنده.`,
     path: "/",
     body,
@@ -506,7 +507,7 @@ ${ctaButtons(ctx, "sell", "اهدای کتاب")}
     jsonld: {
       "@context": "https://schema.org",
       "@graph": [
-        { "@type": "WebSite", name: "دست‌به‌دست", url: ctx.baseUrl + "/", inLanguage: "fa" },
+        { "@type": "WebSite", name: "نیمدار", url: ctx.baseUrl + "/", inLanguage: "fa" },
         { "@type": "FAQPage", mainEntity: FAQ.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) },
       ],
     },
@@ -525,7 +526,7 @@ ${pageHead(ctx, {
   title: `قفسه‌ی «${esc(p.nickname)}»`,
   sub: `${facts.length ? `<p class="muted">${esc(facts.join(" · "))}</p>` : ""}
 ${p.badges?.length ? `<p class="tags">${p.badges.map((x) => `<span>${esc(x)}</span>`).join("")}</p>` : ""}`,
-  art: mascot(ctx, "reading", "زبری کتاب می‌خواند", "mascot head-art", 140),
+  art: mascot(ctx, "reading", "فندق کتاب می‌خواند", "mascot head-art", 140),
 })}
 <div class="wrap page">
 <article class="book">
@@ -547,8 +548,8 @@ ${ctaButtons(ctx, `u_${p.code}`, "دیدن قفسه")}
 </article>
 </div>`;
   return layout(ctx, {
-    title: `قفسه‌ی «${p.nickname}» | دست‌به‌دست`,
-    description: `کتاب‌های دست‌دوم «${p.nickname}» در دست‌به‌دست.`,
+    title: `قفسه‌ی «${p.nickname}» | نیمدار`,
+    description: `کتاب‌های دست‌دوم «${p.nickname}» در نیمدار.`,
     path: `/u/${p.code}/`,
     body,
     full: true,
@@ -558,10 +559,10 @@ ${ctaButtons(ctx, `u_${p.code}`, "دیدن قفسه")}
 
 function notFound(ctx) {
   return layout(ctx, {
-    title: "صفحه پیدا نشد | دست‌به‌دست",
+    title: "صفحه پیدا نشد | نیمدار",
     description: "این صفحه وجود نداره.",
     path: "/404.html",
-    body: `<div class="say big">${mascot(ctx, "oops", "گورخر دست‌به‌دست سرش را گرفته", "mascot", 220)}<div><h1>اوه! این صفحه پیدا نشد</h1><p class="empty">این صفحه وجود نداره، یا آگهی‌های این کتاب تموم شدن.</p><div class="cta"><a class="btn" href="${ctx.base}/">همه‌ی کتاب‌ها</a><a class="btn btn-alt" href="${ctx.base}/wanted/">کتاب‌هایی که خریدار دارن</a></div></div></div>`,
+    body: `<div class="say big">${mascot(ctx, "oops", "فندق، سنجاب نیمدار، سرش را گرفته", "mascot", 220)}<div><h1>اوه! این صفحه پیدا نشد</h1><p class="empty">این صفحه وجود نداره، یا آگهی‌های این کتاب تموم شدن.</p><div class="cta"><a class="btn" href="${ctx.base}/">همه‌ی کتاب‌ها</a><a class="btn btn-alt" href="${ctx.base}/wanted/">کتاب‌هایی که خریدار دارن</a></div></div></div>`,
   });
 }
 
@@ -616,7 +617,7 @@ export function listPages(books) {
 
 function listPage(ctx, pg) {
   const books = pg.kind === "wanted" ? pg.books : [...pg.books].sort(byListings);
-  const art = pg.kind === "wanted" ? mascot(ctx, "search", "گورخر دست‌به‌دست با ذره‌بین", "mascot head-art", 140) : pg.kind === "cat" ? `<span class="head-icon cv-${esc(pg.path.split("/")[2])}">${CAT_ICON[pg.path.split("/")[2]] ?? "📚"}</span>` : mascot(ctx, "reading", "زبری کتاب می‌خواند", "mascot head-art", 140);
+  const art = pg.kind === "wanted" ? mascot(ctx, "search", "فندق، سنجاب نیمدار، با ذره‌بین", "mascot head-art", 140) : pg.kind === "cat" ? `<span class="head-icon cv-${esc(pg.path.split("/")[2])}">${CAT_ICON[pg.path.split("/")[2]] ?? "📚"}</span>` : mascot(ctx, "reading", "فندق کتاب می‌خواند", "mascot head-art", 140);
   const body = `
 ${pageHead(ctx, {
   crumbs: [{ label: pg.kind === "wanted" ? "الان کسی می‌خواد" : pg.kind === "cat" ? "دسته‌ها" : pg.kind === "grade" ? "پایه‌ها" : "شهرها" }],
@@ -626,10 +627,10 @@ ${pageHead(ctx, {
 })}
 <div class="wrap page">
 <ul class="cards">${books.map((b) => bookCard(ctx, b)).join("")}</ul>
-${pg.kind === "wanted" ? "" : `<section class="sell wide">${mascot(ctx, "handoff", "زبری کتاب را دست به دست می‌دهد", "mascot", 110)}<div><p>کتابت اینجا نیست؟ ثبت آگهی رایگانه.</p>${ctaButtons(ctx, "sell", "ثبت کتاب")}</div></section>`}
+${pg.kind === "wanted" ? "" : `<section class="sell wide">${mascot(ctx, "handoff", "فندق کتاب را به دست نفر بعدی می‌دهد", "mascot", 110)}<div><p>کتابت اینجا نیست؟ ثبت آگهی رایگانه.</p>${ctaButtons(ctx, "sell", "ثبت کتاب")}</div></section>`}
 ${browseNav(ctx, ctx.allBooks)}
 </div>`;
-  const title = pg.kind === "wanted" ? "کتاب‌هایی که الان خریدار دارن | دست‌به‌دست" : `${pg.h1} | خرید و فروش | دست‌به‌دست`;
+  const title = pg.kind === "wanted" ? "کتاب‌هایی که الان خریدار دارن | نیمدار" : `${pg.h1} | خرید و فروش | نیمدار`;
   return layout(ctx, {
     title,
     description: pg.intro,
@@ -676,7 +677,7 @@ function stickerPage(ctx) {
 <strong>این کتاب داره سفر می‌کنه!</strong>
 <span id="title" class="sticker-title"></span>
 <span>اسکن کن ببین از کجاها گذشته. خوندیش؟ بدش به نفر بعدی.</span>
-<span class="sticker-code">کد: <b id="code"></b> · دست‌به‌دست</span>
+<span class="sticker-code">کد: <b id="code"></b> · نیمدار</span>
 </div>
 </div>
 <p id="bad" class="empty" hidden>کد برچسب درست نیست. لینک رو از ربات دوباره بگیر.</p>
@@ -684,7 +685,7 @@ function stickerPage(ctx) {
 </section>
 <script src="${ctx.base}/assets/vendor/qrcode.min.js"></script>
 <script src="${ctx.base}/assets/sticker.js"></script>`;
-  return layout(ctx, { title: "برچسب سفر کتاب | دست‌به‌دست", description: "برچسب QR برای نسخه‌ای که دست‌به‌دست می‌شود.", path: "/sticker/", body, noindex: true });
+  return layout(ctx, { title: "برچسب سفر کتاب | نیمدار", description: "برچسب QR برای نسخه‌ای که دست‌به‌دست می‌شود.", path: "/sticker/", body, noindex: true });
 }
 
 // ---------- build ----------
@@ -701,9 +702,11 @@ export function build(data, { baseUrl, outDir }) {
   const url = new URL(baseUrl.replace(/\/+$/, "") + "/");
   const ctx = {
     baseUrl: url.href.replace(/\/$/, ""),
-    base: url.pathname.replace(/\/$/, ""), // مثلاً /dastbedast-site برای سایت پروژه‌ی گیت‌هاب
+    base: url.pathname.replace(/\/$/, ""), // مثلاً /nimdar-site برای سایت پروژه‌ی گیت‌هاب
     bots: data.bots ?? {},
     generatedAt: data.generated_at,
+    // تصویرهای فندق (سنجاب) آماده‌اند؟ از Worker می‌آید (MASCOT_ART)؛ داده‌ی قدیمی بدون این فیلد یعنی آماده
+    mascot: data.mascot !== false,
     profiles: new Map((data.profiles ?? []).filter((p) => CODE_RE.test(p.code ?? "")).map((p) => [p.code, p])),
     channels: data.channels ?? {},
     allBooks: data.books,
