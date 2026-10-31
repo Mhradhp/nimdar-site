@@ -92,8 +92,36 @@ function navCta(ctx) {
   return l ? `<a class="nav-cta" href="${esc(l.url)}" rel="nofollow">📚 ثبت رایگان کتاب</a>` : "";
 }
 
-function layout(ctx, { title, description, path, body, jsonld, noindex }) {
+/** لینک کانال (فقط آیدی عمومی، مثل @dastbedast_org) */
+function channelLinks(ctx) {
+  const out = [];
+  const tg = String(ctx.channels.tg ?? "");
+  if (/^@[A-Za-z0-9_]{4,64}$/.test(tg)) out.push({ label: "کانال تلگرام", url: `https://t.me/${tg.slice(1)}` });
+  const bale = String(ctx.channels.bale ?? "");
+  if (/^@[A-Za-z0-9_]{4,64}$/.test(bale)) out.push({ label: "کانال بله", url: `https://ble.ir/${bale.slice(1)}` });
+  return out;
+}
+
+/** سربرگ صفحه‌های داخلی: نوار تمام‌عرض با مسیر و عنوان */
+function pageHead(ctx, { crumbs = [], title, sub = "", art = "", h1Class = "" }) {
+  const trail = [`<a href="${ctx.base}/">خانه</a>`, ...crumbs.map((c) => (c.href ? `<a href="${c.href}">${esc(c.label)}</a>` : `<span>${esc(c.label)}</span>`))];
+  return `<section class="page-head"><div class="wrap page-head-in">
+<div>
+<nav class="crumbs" aria-label="مسیر">${trail.join('<span class="sep">‹</span>')}</nav>
+<h1${h1Class ? ` class="${h1Class}"` : ""}>${title}</h1>
+${sub}
+</div>
+${art}
+</div></section>`;
+}
+
+function layout(ctx, { title, description, path, body, jsonld, noindex, full }) {
   const canonical = ctx.baseUrl + path;
+  const ch = channelLinks(ctx);
+  const bot = botLinks(ctx.bots, "start")[0];
+  const cats = Object.entries(CATEGORIES).filter(([k]) => ctx.catCounts.get(k));
+  const cities = ctx.topCities;
+  const navLinks = `<a href="${ctx.base}/#books">کتاب‌ها</a><a href="${ctx.base}/#cats">دسته‌ها</a><a href="${ctx.base}/wanted/">الان کسی می‌خواد</a><a href="${ctx.base}/#gift">کتاب معلق</a><a href="${ctx.base}/#faq">سؤالات</a>`;
   return `<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
@@ -105,6 +133,7 @@ function layout(ctx, { title, description, path, body, jsonld, noindex }) {
 ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <meta property="og:type" content="website">
 <meta property="og:locale" content="fa_IR">
+<meta property="og:site_name" content="دست‌به‌دست">
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(canonical)}">
@@ -120,18 +149,35 @@ ${noindex ? '<meta name="robots" content="noindex">' : ""}
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, "\\u003c")}</script>` : ""}
 </head>
 <body>
-<header class="bar"><div class="top">
+<a class="skip" href="#main">رفتن به محتوا</a>
+<div class="topline"><div class="wrap">⚡ ثبت آگهی همیشه رایگانه · 🔔 کتابت نبود؟ درخواست بده، به محض اومدنش خبرت می‌کنیم${ch[0] ? ` · <a href="${esc(ch[0].url)}" rel="noopener">📣 ${esc(ch[0].label)}</a>` : ""}</div></div>
+<header class="bar"><div class="wrap top">
 <a class="brand" href="${ctx.base}/" aria-label="دست‌به‌دست، صفحه‌ی اصلی">${wordmark()}</a>
-<nav class="nav"><a href="${ctx.base}/">کتاب‌ها</a><a href="${ctx.base}/wanted/">الان کسی می‌خواد</a>${navCta(ctx)}</nav>
+<nav class="nav" aria-label="اصلی">${navLinks}</nav>
+<div class="bar-end">${navCta(ctx)}
+<details class="menu"><summary aria-label="منو"><span></span><span></span><span></span></summary><nav class="menu-panel" aria-label="منوی موبایل">${navLinks}${ch.map((c) => `<a href="${esc(c.url)}" rel="noopener">📣 ${esc(c.label)}</a>`).join("")}</nav></details>
+</div>
 </div></header>
-<main>
-${body}
+<main id="main">
+${full ? body : `<div class="wrap page">${body}</div>`}
 </main>
-<footer class="foot"><div class="foot-in">
-<div class="foot-brand">${wordmark()}<p>کتاب دست‌دوم، از یه دست به دست دیگه.<br>ثبت آگهی همیشه رایگانه.</p></div>
-<div class="foot-zebri"><img src="${ctx.base}/assets/mascot/hello.webp" width="88" height="88" alt="زبری، گورخر دست‌به‌دست" loading="lazy"><p>من زبری‌ام 🦓<br>کتاب‌ها رو به هم می‌رسونم.</p></div>
-<p class="foot-note">⚠️ قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکنید. · به‌روزرسانی: ${esc(persianDate(ctx.generatedAt))}</p>
-</div></footer>
+<footer class="foot">
+<div class="wrap foot-cta">
+<img src="${ctx.base}/assets/mascot/hello.webp" width="120" height="120" alt="زبری، گورخر دست‌به‌دست" loading="lazy">
+<div><b>کتابی داری که دیگه لازمش نداری؟</b><p>زیر یک دقیقه ثبتش کن؛ کسی که منتظرشه همون لحظه خبردار می‌شه.</p></div>
+${ctaButtons(ctx, "sell", "ثبت رایگان کتاب")}
+</div>
+<div class="wrap foot-grid">
+<div class="foot-brand">${wordmark()}<p>بازار کتاب دست‌دوم المپیاد، کنکور، درسی و هر کتاب دیگه. یک صفحه برای هر کتاب، نه یک پست برای هر آگهی.</p>
+<p class="socials">${bot ? `<a href="${esc(bot.url)}" rel="nofollow">🤖 ربات ${esc(bot.label)}</a>` : ""}${ch.map((c) => `<a href="${esc(c.url)}" rel="noopener">📣 ${esc(c.label)}</a>`).join("")}</p></div>
+${cats.length ? `<div><h3>دسته‌ها</h3><ul>${cats.slice(0, 8).map(([k, v]) => `<li><a href="${ctx.base}/c/${k}/">${esc(v)}</a></li>`).join("")}</ul></div>` : ""}
+${cities.length ? `<div><h3>شهرها</h3><ul>${cities.slice(0, 8).map((c) => `<li><a href="${ctx.base}${encodeURI(`/city/${slug(c)}/`)}">${esc(c)}</a></li>`).join("")}</ul></div>` : ""}
+<div><h3>دست‌به‌دست</h3><ul><li><a href="${ctx.base}/wanted/">کتاب‌هایی که خریدار دارن</a></li><li><a href="${ctx.base}/#how">چطور کار می‌کنه</a></li><li><a href="${ctx.base}/#gift">کتاب معلق</a></li><li><a href="${ctx.base}/#safe">معامله‌ی امن</a></li><li><a href="${ctx.base}/#faq">سؤالات پرتکرار</a></li><li><a href="${ctx.base}/scan/">اسکن بارکد</a></li></ul></div>
+</div>
+<div class="foot-bottom"><div class="wrap">
+<p class="foot-note">⚠️ قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکنید. · فایل PDF کتاب ممنوعه. · به‌روزرسانی: ${esc(persianDate(ctx.generatedAt))}</p>
+</div></div>
+</footer>
 </body>
 </html>
 `;
@@ -227,12 +273,13 @@ export function bookPage(ctx, b) {
       : {}),
   };
 
+  const catLink = b.category && CATEGORIES[b.category] ? [{ label: CATEGORIES[b.category], href: `${ctx.base}/c/${b.category}/` }] : [];
+  const sub = `${meta ? `<p class="muted">${esc(meta)}</p>` : ""}
+${tags.length ? `<p class="tags">${tags.map((t) => `<span>${esc(t)}</span>`).join("")}</p>` : ""}`;
   const body = `
-<nav class="crumbs"><a href="${ctx.base}/">همه‌ی کتاب‌ها</a></nav>
+${pageHead(ctx, { crumbs: [...catLink, { label: b.title }], title: esc(b.title), sub, art: `<div class="head-cover">${cover(b)}</div>` })}
+<div class="wrap page book-layout">
 <article class="book">
-<h1>${esc(b.title)}</h1>
-${meta ? `<p class="muted">${esc(meta)}</p>` : ""}
-${tags.length ? `<p class="tags">${tags.map((t) => `<span>${esc(t)}</span>`).join("")}</p>` : ""}
 ${b.validity_note ? `<p class="note">${esc(b.validity_note)}</p>` : ""}
 <div class="stats">
 <div><b>${fa(b.listings.length)}</b><span>نسخه موجود</span></div>
@@ -249,14 +296,33 @@ ${ctaButtons(ctx, `b_${b.id}`, "دنبال این کتابم")}`
 }
 ${readerTags(b)}
 ${qaSection(ctx, b)}
+</article>
+<aside class="side">
+<div class="side-card">
+<b>${has ? "این کتاب رو می‌خوای؟" : "دنبال این کتابی؟"}</b>
+<p>${has ? "از ربات به فروشنده پیام بده یا پیشنهاد قیمت بده." : "درخواست بده؛ به محض ثبت شدنش خبرت می‌کنیم."}</p>
+${ctaButtons(ctx, `b_${b.id}`, has ? "خرید" : "درخواست")}
+</div>
 <section class="sell">
-${mascot(ctx, "handoff", "گورخر دست‌به‌دست کتابی را به دست دیگری می‌دهد", "mascot side", 120)}
+${mascot(ctx, "handoff", "گورخر دست‌به‌دست کتابی را به دست دیگری می‌دهد", "mascot", 120)}
 <p>این کتاب رو داری؟ ثبت آگهی رایگانه${b.waiting ? ` و ${fa(b.waiting)} نفر همین الان منتظرشن` : ""}.</p>
 ${ctaButtons(ctx, "sell", "ثبت کتاب")}
 </section>
-</article>`;
+<div class="side-card safe-card"><b>⚠️ معامله‌ی امن</b><p>قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکنید.</p></div>
+</aside>
+</div>`;
 
-  return layout(ctx, { title: `${b.title} دست‌دوم | دست‌به‌دست`, description, path: `/b/${b.id}/`, body, jsonld });
+  return layout(ctx, { title: `${b.title} دست‌دوم | دست‌به‌دست`, description, path: `/b/${b.id}/`, body, jsonld, full: true });
+}
+
+const CAT_ICON = {
+  olympiad: "🏅", konkur: "🎯", school: "🏫", helper: "📝", university: "🎓", language: "🌍", novel: "📖", literature: "🪶",
+  history: "🏛", philosophy: "🧠", selfhelp: "🌱", kids: "🧸", science: "🔬", art: "🎨", computer: "💻", general: "📚",
+};
+
+/** جلد ساختگی کارت کتاب: رنگ از دسته، اسم کتاب با لاله‌زار */
+function cover(b) {
+  return `<span class="cover cv-${esc(b.category ?? "general")}" aria-hidden="true"><i>${CAT_ICON[b.category] ?? "📚"}</i><em>${esc(b.title.length > 42 ? b.title.slice(0, 40) + "…" : b.title)}</em></span>`;
 }
 
 function bookCard(ctx, b) {
@@ -266,34 +332,78 @@ function bookCard(ctx, b) {
     ? `${fa(b.listings.length)} نسخه${prices.length ? ` · از ${price(Math.min(...prices))}` : ""}${gifts ? " · کتاب معلق" : ""}`
     : "هنوز کسی نداره";
   const key = searchKey([b.title, b.author, b.publisher].filter(Boolean).join(" "));
+  const badge = gifts ? `<span class="badge gift">🎁 رایگان</span>` : !b.listings.length && b.waiting ? `<span class="badge want">🔔 خریدار داره</span>` : "";
   return `<li class="card" data-q="${esc(key)}" data-cat="${esc(b.category ?? "")}"><a href="${ctx.base}/b/${b.id}/">
+${cover(b)}${badge}
+<span class="card-body">
 <strong>${esc(b.title)}</strong>
 <span class="muted">${esc([b.publisher, CATEGORIES[b.category]].filter(Boolean).join(" · "))}</span>
 <span class="supply${b.listings.length ? "" : " none"}">${esc(supply)}${b.waiting ? ` · ${fa(b.waiting)} منتظر` : ""}</span>
+</span>
 </a></li>`;
 }
+
+const FAQ = [
+  ["ثبت آگهی پول داره؟", "نه. ثبت آگهی همیشه رایگانه و هیچ کارمزدی از فروش گرفته نمی‌شه."],
+  ["چطور با فروشنده حرف بزنم؟", "از صفحه‌ی کتاب «پیام به فروشنده» رو بزن. گفتگو از طریق ربات انجام می‌شه و آیدی و شماره‌ی هیچ‌کس به طرف مقابل نشون داده نمی‌شه."],
+  ["کتابی که می‌خوام نیست؛ چی کار کنم؟", "توی ربات درخواستش رو ثبت کن (می‌تونی سقف قیمت هم بذاری). به محض اینکه کسی ثبتش کنه، همون لحظه خبرت می‌کنیم."],
+  ["کتاب معلق چیه؟", "کتابی که صاحبش رایگان هدیه می‌ده. هر کی لازمش داره یه جمله می‌نویسه و خود اهداکننده انتخاب می‌کنه کتاب به کی برسه."],
+  ["پول رو چطور بدم؟", "معامله مستقیم بین خودتونه، حضوری یا پستی. قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکنید."],
+  ["قیمت مناسب رو از کجا بفهمم؟", "هر صفحه‌ی کتاب «قیمت معمول» رو از روی آگهی‌های واقعی نشون می‌ده. موقع ثبت هم ربات قیمت پیشنهادی می‌ده."],
+  ["فایل PDF کتاب هم می‌شه گذاشت؟", "نه. اینجا فقط کتاب کاغذی واقعی دست‌به‌دست می‌شه؛ آگهی و درخواست PDF حذف می‌شه."],
+];
 
 export function indexPage(ctx, books) {
   // کتاب‌های دارای آگهی اول، بعد پرتقاضاها
   const sorted = [...books].sort((a, b) => b.listings.length - a.listings.length || b.waiting - a.waiting || a.id - b.id);
   const cats = Object.entries(CATEGORIES).filter(([k]) => books.some((b) => b.category === k));
+  const copies = books.reduce((s, b) => s + b.listings.length, 0);
+  const waiting = books.reduce((s, b) => s + b.waiting, 0);
+  const giftCount = books.reduce((s, b) => s + b.listings.filter((l) => l.gift).length, 0);
+  const wanted = books.filter((b) => b.waiting > 0 && !b.listings.length).sort((a, b) => b.waiting - a.waiting || a.id - b.id).slice(0, 6);
+  const ch = channelLinks(ctx);
+  const sticker = (n, alt = "") => `<img src="${ctx.base}/assets/mascot/${n}.webp" width="96" height="96" alt="${esc(alt)}" loading="lazy" decoding="async">`;
   const body = `
-<section class="hero">
+<section class="hero"><div class="wrap hero-in">
 <div class="hero-text">
 <p class="eyebrow">📚 المپیاد · کنکور · درسی · کمک‌درسی · هر کتاب دیگه</p>
 <h1>کتاب دست‌دوم <span>بخر، بفروش، عوض کن</span></h1>
-<p>برای هر کتاب یک صفحه: چند نفر دارن، چند نفر منتظرن، قیمت معمول چقدره. کتابت نبود؟ درخواست بده تا به محض اومدنش خبرت کنیم.</p>
+<p class="lead">برای هر کتاب یک صفحه: چند نفر دارن، چند نفر منتظرن، قیمت معمول چقدره. کتابت نبود؟ درخواست بده تا به محض اومدنش خبرت کنیم.</p>
+<form class="hero-search" action="#books" role="search"><input id="hq" type="search" placeholder="دنبال چه کتابی هستی؟" aria-label="جستجوی کتاب" autocomplete="off"><button type="submit">جستجو</button></form>
 ${ctaButtons(ctx, "sell", "ثبت رایگان کتاب")}
-<ul class="hero-stats"><li><b>${fa(books.reduce((s, b) => s + b.listings.length, 0))}</b>نسخه‌ی موجود</li><li><b>${fa(books.length)}</b>کتاب</li><li><b>${fa(books.reduce((s, b) => s + b.waiting, 0))}</b>نفر منتظر</li></ul>
 </div>
+<div class="hero-art-wrap">
 <img class="hero-art" src="${ctx.base}/assets/mascot/banner.webp" width="825" height="407" alt="زبری، گورخر دست‌به‌دست، در کتابخانه دست تکان می‌دهد">
+<div class="float f1">🔔 یه نفر منتظر همین کتابه!</div>
+<div class="float f2">✅ معامله انجام شد</div>
+</div>
+</div>
+<div class="wrap"><ul class="hero-stats">
+<li><b>${fa(copies)}</b>نسخه‌ی موجود</li><li><b>${fa(books.length)}</b>کتاب</li><li><b>${fa(waiting)}</b>نفر منتظر</li><li><b>${fa(giftCount)}</b>کتاب معلق</li>
+</ul></div>
+<svg class="wave" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true"><path d="M0 30 C 240 70 480 0 720 25 S 1200 60 1440 20 V60 H0Z"/></svg>
 </section>
-<section class="how">
-<div><img src="${ctx.base}/assets/mascot/handoff.webp" width="96" height="96" alt="" loading="lazy"><b>کتابت رو ثبت کن</b><span>زیر یک دقیقه، رایگان</span></div>
-<div><img src="${ctx.base}/assets/mascot/found.webp" width="96" height="96" alt="" loading="lazy"><b>دنبال کتابی؟ درخواست بده</b><span>به محض اومدنش خبرت می‌کنیم</span></div>
-<div><img src="${ctx.base}/assets/mascot/gift.webp" width="96" height="96" alt="" loading="lazy"><b>کتاب معلق</b><span>کتابی که لازم نداری رو هدیه بده</span></div>
-</section>
-<section class="finder">
+
+<section class="trust"><div class="wrap trust-in">
+<div><i>💸</i><b>همیشه رایگان</b><span>ثبت آگهی بدون هیچ هزینه</span></div>
+<div><i>🕶</i><b>گفتگوی ناشناس</b><span>شماره و آیدی کسی دیده نمی‌شه</span></div>
+<div><i>🔔</i><b>هشدار خودکار</b><span>کتابت که اومد، خبرت می‌کنیم</span></div>
+<div><i>🛡</i><b>بررسی همه‌ی آگهی‌ها</b><span>هر آگهی قبل از انتشار دیده می‌شه</span></div>
+</div></section>
+
+${
+  cats.length
+    ? `<section class="band" id="cats"><div class="wrap">
+<div class="sec-head"><div><p class="kicker">دسته‌ها</p><h2>از کجا شروع کنیم؟</h2></div></div>
+<div class="tiles">${cats
+        .map(([k, v]) => `<a class="tile cv-${k}" href="${ctx.base}/c/${k}/"><i>${CAT_ICON[k]}</i><b>${esc(v)}</b><span>${fa(books.filter((b) => b.category === k).length)} کتاب</span></a>`)
+        .join("")}</div>
+</div></section>`
+    : ""
+}
+
+<section class="band band-white" id="books"><div class="wrap finder">
+<div class="sec-head"><div><p class="kicker">کتاب‌ها</p><h2>همه‌ی کتاب‌ها</h2></div><a class="more" href="${ctx.base}/wanted/">الان کسی می‌خواد ←</a></div>
 <input id="q" type="search" placeholder="اسم کتاب، نویسنده یا ناشر…" aria-label="جستجو" autocomplete="off">
 ${
   cats.length > 1
@@ -303,16 +413,98 @@ ${
     : ""
 }
 <p id="none" class="empty" hidden>چیزی پیدا نشد. توی ربات «کتابم نیست؟» رو بزن تا به محض ثبت شدنش خبرت کنیم.</p>
-<ul id="books" class="cards">${sorted.map((b) => bookCard(ctx, b)).join("")}</ul>
-</section>
-${browseNav(ctx, books)}
+<ul id="books-list" class="cards">${sorted.map((b) => bookCard(ctx, b)).join("")}</ul>
+</div></section>
+
+${
+  wanted.length
+    ? `<section class="band band-orange"><div class="wrap wanted-in">
+<div class="wanted-text">${sticker("search", "زبری با ذره‌بین")}
+<p class="kicker">تقاضای واقعی</p><h2>این کتاب‌ها خریدار دارن، ولی هنوز کسی نداره</h2>
+<p>اگه یکی‌شون رو داری، همین الان ثبتش کن؛ منتظرها همون لحظه خبردار می‌شن.</p>
+${ctaButtons(ctx, "sell", "کتاب دارم، ثبتش می‌کنم")}
+<a class="more" href="${ctx.base}/wanted/">همه‌ی کتاب‌هایی که خریدار دارن ←</a></div>
+<ol class="wanted-list">${wanted.map((b) => `<li><span class="w-n">${fa(b.waiting)}<small>منتظر</small></span><a class="w-t" href="${ctx.base}/b/${b.id}/">${esc(b.title)}</a></li>`).join("")}</ol>
+</div></section>`
+    : ""
+}
+
+<section class="band" id="how"><div class="wrap">
+<div class="sec-head center"><div><p class="kicker">چطور کار می‌کنه</p><h2>سه قدم تا کتابی که می‌خوای</h2></div></div>
+<ol class="steps">
+<li>${sticker("handoff")}<b>کتابت رو ثبت کن</b><span>اسم یا بارکد کتاب رو بده، وضعیت و قیمت رو بزن. زیر یک دقیقه.</span></li>
+<li>${sticker("found")}<b>دنبال کتابی؟ درخواست بده</b><span>نبود؟ ثبتش کن؛ به محض اینکه کسی بذاره، خبرت می‌کنیم.</span></li>
+<li>${sticker("chat")}<b>ناشناس گفتگو کن</b><span>از طریق ربات با فروشنده حرف بزن و حضوری یا پستی معامله کن.</span></li>
+<li>${sticker("deal")}<b>امتیاز بده</b><span>بعد از معامله به هم امتیاز بدید تا بقیه به فروشنده‌های خوب اعتماد کنن.</span></li>
+</ol>
+</div></section>
+
+<section class="band band-white"><div class="wrap">
+<div class="sec-head center"><div><p class="kicker">امکانات</p><h2>هر چی برای یه معامله‌ی خوب لازمه</h2></div></div>
+<div class="features">
+<div><i>💰</i><b>قیمت‌یاب</b><span>قیمت معمول هر کتاب از روی آگهی‌ها و فروش‌های واقعی.</span></div>
+<div><i>📷</i><b>اسکن بارکد</b><span>بارکد پشت جلد رو اسکن کن؛ کتاب خودش پیدا می‌شه.</span></div>
+<div><i>⭐</i><b>امتیاز فروشنده</b><span>امتیاز هر فروشنده کنار آگهی‌ش دیده می‌شه.</span></div>
+<div><i>💬</i><b>پیشنهاد قیمت و رزرو</b><span>قیمت پیشنهاد بده؛ فروشنده می‌تونه کتاب رو برات نگه داره.</span></div>
+<div><i>🏷</i><b>نظر خواننده‌ها</b><span>کسانی که کتاب رو داشتن می‌گن به درد کی می‌خوره.</span></div>
+<div><i>📚</i><b>باشگاه کتاب و چالش</b><span>کتاب ماه، چالش سالانه‌ی کتاب‌خوانی و نشان‌ها.</span></div>
+</div>
+</div></section>
+
+<section class="band band-green" id="gift"><div class="wrap split">
+<img class="split-art" src="${ctx.base}/assets/mascot/gift.webp" width="320" height="320" alt="زبری کتابی را هدیه می‌دهد" loading="lazy">
+<div>
+<p class="kicker">کتاب معلق</p>
+<h2>کتابی که دیگه لازم نداری، می‌تونه آینده‌ی یکی دیگه رو بسازه</h2>
+<p>کتابت رو رایگان هدیه بده. کسی که لازمش داره یه جمله برات می‌نویسه و خودت انتخاب می‌کنی به کی برسه. هر نسخه یه برچسب QR می‌گیره و می‌شه دید از دست چند نفر گذشته.</p>
+${ctaButtons(ctx, "sell", "اهدای کتاب")}
+</div>
+</div></section>
+
+<section class="band" id="safe"><div class="wrap split rev">
+<img class="split-art" src="${ctx.base}/assets/mascot/thinking.webp" width="320" height="320" alt="زبری فکر می‌کند" loading="lazy">
+<div>
+<p class="kicker">معامله‌ی امن</p>
+<h2>چند نکته که همیشه یادت باشه</h2>
+<ul class="checks">
+<li>قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکن.</li>
+<li>برای کتاب معلق هیچ پولی، حتی هزینه‌ی پست، از قبل نده.</li>
+<li>تحویل حضوری رو جای شلوغ و عمومی بذار.</li>
+<li>تخلف دیدی؟ از دکمه‌ی «گزارش تخلف» توی ربات خبر بده.</li>
+</ul>
+</div>
+</div></section>
+
+<section class="band band-ink"><div class="wrap zebri">
+<div class="zebri-text">
+<p class="kicker">با زبری آشنا شو</p>
+<h2>زبری، گورخرِ کتاب‌بازِ دست‌به‌دست</h2>
+<p>توی ربات و کانال همراهته: کتاب پیدا شد خبرت می‌کنه، معامله که شد باهات جشن می‌گیره.</p>
+<div class="cta">${botLinks(ctx.bots, "start").map((l) => `<a class="btn" href="${esc(l.url)}" rel="nofollow">شروع در ${l.label}</a>`).join("")}${ch.map((c) => `<a class="btn btn-ghost" href="${esc(c.url)}" rel="noopener">📣 ${esc(c.label)}</a>`).join("")}</div>
+</div>
+<div class="zebri-row">${["hello", "found", "deal", "reading", "magic", "price"].map((n) => sticker(n)).join("")}</div>
+</div></section>
+
+<section class="band band-white" id="faq"><div class="wrap faq-wrap">
+<div class="sec-head"><div><p class="kicker">سؤالات پرتکرار</p><h2>هر چی باید بدونی</h2></div></div>
+<div class="faq">${FAQ.map(([q, a], i) => `<details${i ? "" : " open"}><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join("")}</div>
+</div></section>
+
+<div class="wrap">${browseNav(ctx, books)}</div>
 <script src="${ctx.base}/assets/search.js" defer></script>`;
   return layout(ctx, {
     title: "دست‌به‌دست | خرید، فروش و تبادل کتاب دست‌دوم",
     description: `${fa(books.length)} کتاب دست‌دوم المپیاد، کنکور، درسی و عمومی. ثبت آگهی رایگان، گفتگوی امن با فروشنده.`,
     path: "/",
     body,
-    jsonld: { "@context": "https://schema.org", "@type": "WebSite", name: "دست‌به‌دست", url: ctx.baseUrl + "/", inLanguage: "fa" },
+    full: true,
+    jsonld: {
+      "@context": "https://schema.org",
+      "@graph": [
+        { "@type": "WebSite", name: "دست‌به‌دست", url: ctx.baseUrl + "/", inLanguage: "fa" },
+        { "@type": "FAQPage", mainEntity: FAQ.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) },
+      ],
+    },
   });
 }
 
@@ -323,32 +515,38 @@ export function profilePage(ctx, p, books) {
   const rating = p.rating ? `★${fa(String(p.rating.avg).replace(".", "٫"))} (${fa(p.rating.count)} رأی)` : null;
   const facts = [p.city, rating, p.stats?.sold ? `${fa(p.stats.sold)} فروش` : null, p.stats?.given ? `${fa(p.stats.given)} اهدا` : null, p.stats?.read_this_year ? `امسال ${fa(p.stats.read_this_year)} کتاب خونده` : null].filter(Boolean);
   const body = `
-<nav class="crumbs"><a href="${ctx.base}/">همه‌ی کتاب‌ها</a></nav>
+${pageHead(ctx, {
+  crumbs: [{ label: "قفسه" }],
+  title: `قفسه‌ی «${esc(p.nickname)}»`,
+  sub: `${facts.length ? `<p class="muted">${esc(facts.join(" · "))}</p>` : ""}
+${p.badges?.length ? `<p class="tags">${p.badges.map((x) => `<span>${esc(x)}</span>`).join("")}</p>` : ""}`,
+  art: mascot(ctx, "reading", "زبری کتاب می‌خواند", "mascot head-art", 140),
+})}
+<div class="wrap page">
 <article class="book">
-<h1>قفسه‌ی «${esc(p.nickname)}»</h1>
-${facts.length ? `<p class="muted">${esc(facts.join(" · "))}</p>` : ""}
-${p.badges?.length ? `<p class="tags">${p.badges.map((x) => `<span>${esc(x)}</span>`).join("")}</p>` : ""}
-${p.bio ? `<p>${esc(p.bio)}</p>` : ""}
+${p.bio ? `<p class="bio">${esc(p.bio)}</p>` : ""}
 <h2>کتاب‌ها</h2>
 ${
   mine.length
     ? `<ul class="cards">${mine
         .map(
           ({ b, l }) =>
-            `<li class="card"><a href="${ctx.base}/b/${b.id}/"><strong>${esc(b.title)}</strong><span class="muted">${esc(
+            `<li class="card"><a href="${ctx.base}/b/${b.id}/">${cover(b)}<span class="card-body"><strong>${esc(b.title)}</strong><span class="muted">${esc(
               [CONDITIONS[l.condition], l.city].filter(Boolean).join(" · "),
-            )}</span><span class="supply">${esc(l.gift ? "رایگان (کتاب معلق)" : l.price === null ? "فقط تبادل" : price(l.price))}</span></a></li>`,
+            )}</span><span class="supply">${esc(l.gift ? "رایگان (کتاب معلق)" : l.price === null ? "فقط تبادل" : price(l.price))}</span></span></a></li>`,
         )
         .join("")}</ul>`
     : `<p class="empty">فعلاً کتابی توی این قفسه نیست.</p>`
 }
 ${ctaButtons(ctx, `u_${p.code}`, "دیدن قفسه")}
-</article>`;
+</article>
+</div>`;
   return layout(ctx, {
     title: `قفسه‌ی «${p.nickname}» | دست‌به‌دست`,
     description: `کتاب‌های دست‌دوم «${p.nickname}» در دست‌به‌دست.`,
     path: `/u/${p.code}/`,
     body,
+    full: true,
     noindex: true, // برای اشتراک‌گذاری است، نه گوگل؛ بیشتر کاربرها دانش‌آموزند
   });
 }
@@ -358,7 +556,7 @@ function notFound(ctx) {
     title: "صفحه پیدا نشد | دست‌به‌دست",
     description: "این صفحه وجود نداره.",
     path: "/404.html",
-    body: `<div class="say">${mascot(ctx, "oops", "گورخر دست‌به‌دست سرش را گرفته")}<p class="empty">این صفحه وجود نداره، یا آگهی‌های این کتاب تموم شدن. <a href="${ctx.base}/">همه‌ی کتاب‌ها</a></p></div>`,
+    body: `<div class="say big">${mascot(ctx, "oops", "گورخر دست‌به‌دست سرش را گرفته", "mascot", 220)}<div><h1>اوه! این صفحه پیدا نشد</h1><p class="empty">این صفحه وجود نداره، یا آگهی‌های این کتاب تموم شدن.</p><div class="cta"><a class="btn" href="${ctx.base}/">همه‌ی کتاب‌ها</a><a class="btn btn-alt" href="${ctx.base}/wanted/">کتاب‌هایی که خریدار دارن</a></div></div></div>`,
   });
 }
 
@@ -413,20 +611,26 @@ export function listPages(books) {
 
 function listPage(ctx, pg) {
   const books = pg.kind === "wanted" ? pg.books : [...pg.books].sort(byListings);
+  const art = pg.kind === "wanted" ? mascot(ctx, "search", "گورخر دست‌به‌دست با ذره‌بین", "mascot head-art", 140) : pg.kind === "cat" ? `<span class="head-icon cv-${esc(pg.path.split("/")[2])}">${CAT_ICON[pg.path.split("/")[2]] ?? "📚"}</span>` : mascot(ctx, "reading", "زبری کتاب می‌خواند", "mascot head-art", 140);
   const body = `
-<nav class="crumbs"><a href="${ctx.base}/">همه‌ی کتاب‌ها</a></nav>
-${pg.kind === "wanted" ? mascot(ctx, "search", "گورخر دست‌به‌دست با ذره‌بین", "mascot side", 130) : ""}
-<h1>${esc(pg.h1)}</h1>
-<p class="muted">${esc(pg.intro)}</p>
-${pg.kind === "wanted" ? ctaButtons(ctx, "sell", "کتاب دارم، ثبتش می‌کنم") : ""}
+${pageHead(ctx, {
+  crumbs: [{ label: pg.kind === "wanted" ? "الان کسی می‌خواد" : pg.kind === "cat" ? "دسته‌ها" : pg.kind === "grade" ? "پایه‌ها" : "شهرها" }],
+  title: esc(pg.h1),
+  sub: `<p class="muted">${esc(pg.intro)}</p>${pg.kind === "wanted" ? ctaButtons(ctx, "sell", "کتاب دارم، ثبتش می‌کنم") : ""}`,
+  art,
+})}
+<div class="wrap page">
 <ul class="cards">${books.map((b) => bookCard(ctx, b)).join("")}</ul>
-${pg.kind === "wanted" ? "" : `<section class="sell"><p>کتابت اینجا نیست؟ ثبت آگهی رایگانه.</p>${ctaButtons(ctx, "sell", "ثبت کتاب")}</section>`}`;
+${pg.kind === "wanted" ? "" : `<section class="sell wide">${mascot(ctx, "handoff", "زبری کتاب را دست به دست می‌دهد", "mascot", 110)}<div><p>کتابت اینجا نیست؟ ثبت آگهی رایگانه.</p>${ctaButtons(ctx, "sell", "ثبت کتاب")}</div></section>`}
+${browseNav(ctx, ctx.allBooks)}
+</div>`;
   const title = pg.kind === "wanted" ? "کتاب‌هایی که الان خریدار دارن | دست‌به‌دست" : `${pg.h1} | خرید و فروش | دست‌به‌دست`;
   return layout(ctx, {
     title,
     description: pg.intro,
     path: pg.path,
     body,
+    full: true,
     jsonld: {
       "@context": "https://schema.org",
       "@type": "ItemList",
@@ -480,6 +684,13 @@ function stickerPage(ctx) {
 
 // ---------- build ----------
 
+/** شهرها به ترتیب تعداد کتاب (برای پانویس) */
+function topCities(books) {
+  const n = new Map();
+  for (const b of books) for (const c of new Set(b.listings.map((l) => l.city).filter(Boolean))) if (slug(c)) n.set(c, (n.get(c) ?? 0) + 1);
+  return [...n].sort((a, b) => b[1] - a[1]).map(([c]) => c);
+}
+
 export function build(data, { baseUrl, outDir }) {
   if (data?.version !== 1 || !Array.isArray(data.books)) throw new Error("catalog.json نامعتبر است");
   const url = new URL(baseUrl.replace(/\/+$/, "") + "/");
@@ -489,6 +700,10 @@ export function build(data, { baseUrl, outDir }) {
     bots: data.bots ?? {},
     generatedAt: data.generated_at,
     profiles: new Map((data.profiles ?? []).filter((p) => CODE_RE.test(p.code ?? "")).map((p) => [p.code, p])),
+    channels: data.channels ?? {},
+    allBooks: data.books,
+    catCounts: new Map(Object.keys(CATEGORIES).map((k) => [k, data.books.filter((b) => b.category === k).length])),
+    topCities: topCities(data.books),
   };
   rmSync(outDir, { recursive: true, force: true });
   mkdirSync(join(outDir, "b"), { recursive: true });

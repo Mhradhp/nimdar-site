@@ -29,6 +29,14 @@
   }
 
   input.addEventListener("input", apply);
+  // جستجوی بخش اصلی: متن را به جستجوی فهرست می‌دهد و به فهرست می‌رود
+  var form = document.querySelector(".hero-search");
+  if (form) form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    input.value = document.getElementById("hq").value;
+    apply();
+    document.getElementById("books").scrollIntoView({ behavior: "smooth" });
+  });
   chips.forEach(function (b) {
     b.addEventListener("click", function () {
       cat = b.getAttribute("data-cat");

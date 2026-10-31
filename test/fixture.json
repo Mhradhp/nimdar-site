@@ -138,5 +138,9 @@
         "given": 0
       }
     }
-  ]
+  ],
+  "channels": {
+    "tg": "@dastbedast_org",
+    "bale": null
+  }
 }
