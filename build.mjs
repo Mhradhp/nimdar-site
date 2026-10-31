@@ -122,7 +122,7 @@ function layout(ctx, { title, description, path, body, jsonld, noindex, full }) 
   const bot = botLinks(ctx.bots, "start")[0];
   const cats = Object.entries(CATEGORIES).filter(([k]) => ctx.catCounts.get(k));
   const cities = ctx.topCities;
-  const navLinks = `<a href="${ctx.base}/#books">کتاب‌ها</a><a href="${ctx.base}/#cats">دسته‌ها</a><a href="${ctx.base}/wanted/">الان کسی می‌خواد</a><a href="${ctx.base}/#gift">کتاب معلق</a><a href="${ctx.base}/#faq">سؤالات</a>`;
+  const navLinks = `<a href="${ctx.base}/#books">کتاب‌ها</a><a href="${ctx.base}/#cats">دسته‌ها</a><a href="${ctx.base}/wanted/">الان کسی می‌خواد</a><a href="${ctx.base}/#gift">کتاب معلق</a><a href="${ctx.base}/#faq">سؤالات</a><a href="${ctx.base}/help/">راهنما</a>`;
   return `<!doctype html>
 <html lang="fa" dir="rtl">
 <head>
@@ -173,7 +173,7 @@ ${ctaButtons(ctx, "sell", "ثبت رایگان کتاب")}
 <p class="socials">${bot ? `<a href="${esc(bot.url)}" rel="nofollow">🤖 ربات ${esc(bot.label)}</a>` : ""}${ch.map((c) => `<a href="${esc(c.url)}" rel="noopener">📣 ${esc(c.label)}</a>`).join("")}</p></div>
 ${cats.length ? `<div><h3>دسته‌ها</h3><ul>${cats.slice(0, 8).map(([k, v]) => `<li><a href="${ctx.base}/c/${k}/">${esc(v)}</a></li>`).join("")}</ul></div>` : ""}
 ${cities.length ? `<div><h3>شهرها</h3><ul>${cities.slice(0, 8).map((c) => `<li><a href="${ctx.base}${encodeURI(`/city/${slug(c)}/`)}">${esc(c)}</a></li>`).join("")}</ul></div>` : ""}
-<div><h3>نیمدار</h3><ul><li><a href="${ctx.base}/wanted/">کتاب‌هایی که خریدار دارن</a></li><li><a href="${ctx.base}/#how">چطور کار می‌کنه</a></li><li><a href="${ctx.base}/#gift">کتاب معلق</a></li><li><a href="${ctx.base}/#safe">معامله‌ی امن</a></li><li><a href="${ctx.base}/#faq">سؤالات پرتکرار</a></li><li><a href="${ctx.base}/scan/">اسکن بارکد</a></li></ul></div>
+<div><h3>نیمدار</h3><ul><li><a href="${ctx.base}/wanted/">کتاب‌هایی که خریدار دارن</a></li><li><a href="${ctx.base}/#how">چطور کار می‌کنه</a></li><li><a href="${ctx.base}/#gift">کتاب معلق</a></li><li><a href="${ctx.base}/#safe">معامله‌ی امن</a></li><li><a href="${ctx.base}/help/">راهنمای کامل</a></li><li><a href="${ctx.base}/#faq">سؤالات پرتکرار</a></li><li><a href="${ctx.base}/scan/">اسکن بارکد</a></li></ul></div>
 </div>
 <div class="foot-bottom"><div class="wrap">
 <p class="foot-note">⚠️ قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکنید. · فایل PDF کتاب ممنوعه. · به‌روزرسانی: ${esc(persianDate(ctx.generatedAt))}</p>
@@ -557,6 +557,78 @@ ${ctaButtons(ctx, `u_${p.code}`, "دیدن قفسه")}
   });
 }
 
+/** راهنمای کامل (همان متن /help ربات و پست پین‌شده‌ی کانال) */
+const GUIDE = [
+  ["🚀", "شروع", "ربات رو باز کن و «شروع» رو بزن. شماره‌ت رو با دکمه به اشتراک بذار (به هیچ‌کس نشون داده نمی‌شه) و شهرت رو بگو. تمام!", []],
+  ["📚", "فروش یا اهدای کتاب", "«ثبت کتاب» رو بزن، اسم کتاب رو بنویس (یا بارکد پشت جلد رو با «اسکن بارکد» بزن)، وضعیت و قیمت رو انتخاب کن، عکس بذار و «ثبت کن». زیر یک دقیقه!", [
+    "تا ۳ آگهی فروشی همزمان رایگانه. اهدا (کتاب معلق) سقف نداره.",
+    "آگهی همون لحظه توی ربات دیده می‌شه و به کسایی که منتظرش بودن خبر می‌ره.",
+    "بعد از بررسی، هر روز ساعت ۱۹ توی پست «آگهی‌های تازه» کانال میاد.",
+    "آگهی ویژه ⭐: پست جدا با عکس توی کانال و ۷ روز بالای صفحه‌ی کتاب.",
+  ]],
+  ["🔍", "خرید", "اسم کتاب، نویسنده یا ناشر رو توی ربات یا همین سایت جستجو کن. صفحه‌ی کتاب همه‌ی آگهی‌ها رو با قیمت، شهر و امتیاز فروشنده نشون می‌ده.", [
+    "«پیام به فروشنده»: گفتگو از داخل ربات، بدون اینکه آیدی یا شماره‌ی کسی دیده بشه.",
+    "می‌تونی پیشنهاد قیمت بدی؛ فروشنده می‌تونه کتاب رو چند روز برات رزرو کنه.",
+    "«ذخیره»: اگه قیمت پایین اومد یا فروخته شد، خبرت می‌کنیم.",
+  ]],
+  ["🔔", "کتابت نبود؟", "«دنبال این کتابم» یا «کتابم نیست؟» رو بزن (سقف قیمت هم می‌تونی بذاری). به محض اینکه کسی ثبتش کنه، همون لحظه خبرت می‌کنیم. فهرستش توی «درخواست‌های من» هست.", []],
+  ["🎁", "کتاب معلق", "کتابی که لازم نداری رو رایگان هدیه بده. هر کی لازمش داره یه جمله برات می‌نویسه و خودت انتخاب می‌کنی به کی برسه. کتاب‌های اهدایی توی «کتاب‌های معلق» هستن.", []],
+  ["🤝", "بعد از معامله", "فروشنده «فروختم به همین نفر» رو می‌زنه و هر دو طرف به هم امتیاز می‌دن. امتیاز خوب یعنی اعتماد بیشتر.", []],
+  ["🗂", "بخش‌های دیگه‌ی ربات", "", [
+    "قفسه‌ی من: آگهی‌هات (فروخته شد، تغییر قیمت، حذف، ویژه کردن) و کتابخونه‌ی شخصیت",
+    "پروفایل من: اسم مستعار، شهر، نشان‌ها، تنظیمات اعلان، باشگاه کتاب و چالش کتاب‌خوانی",
+    "دعوت از دوستان: لینک دعوت خودت",
+    "توی هر چت تلگرام آیدی ربات و بعد اسم کتاب رو بنویس، تا کارت کتاب رو برای دوستت بفرستی",
+  ]],
+  ["📣", "کانال", "هر روز ۱۹:۰۰ آگهی‌های تازه، هر شب ۲۱:۰۰ «کی داره؟» (کتاب‌هایی که خریدار دارن ولی کسی نداره) و پنجشنبه‌ها «کتاب‌های پرتقاضا». دکمه‌ی زیر هر پست صفحه‌ی همون کتاب رو توی ربات باز می‌کنه.", []],
+  ["🌐", "سایت", "همه‌ی کتاب‌ها با جستجو و دسته‌بندی، بدون نیاز به تلگرام. برای پیام دادن یا ثبت کتاب، دکمه‌های سایت تو رو به ربات می‌برن.", []],
+];
+const SAFETY = [
+  "قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکن.",
+  "برای کتاب معلق هیچ پولی، حتی هزینه‌ی پست، از قبل نده.",
+  "تحویل حضوری رو جای شلوغ و عمومی بذار.",
+  "پرداخت به نیمدار (مثلاً آگهی ویژه) فقط از داخل ربات انجام می‌شه؛ ادمین هیچ‌وقت پیام خصوصی نمی‌ده.",
+  "تخلف دیدی؟ «گزارش تخلف» رو توی ربات بزن.",
+  "فایل PDF کتاب ممنوعه.",
+];
+
+function guidePage(ctx) {
+  const bot = botLinks(ctx.bots, "start")[0];
+  const ch = channelLinks(ctx);
+  const body = `
+${pageHead(ctx, {
+  crumbs: [{ label: "راهنما" }],
+  title: "راهنمای نیمدار",
+  sub: `<p class="muted">هر چی برای خرید، فروش، تبادل و اهدای کتاب دست‌دوم توی ربات، کانال و سایت نیمدار لازمه، یک‌جا.</p>
+<div class="cta">${bot ? `<a class="btn" href="${esc(bot.url)}" rel="nofollow">شروع در ربات</a>` : ""}${ch.map((c) => `<a class="btn btn-alt" href="${esc(c.url)}" rel="noopener">📣 ${esc(c.label)}</a>`).join("")}</div>`,
+  art: mascot(ctx, "reading", "نیمو کتاب می‌خواند", "mascot head-art", 140),
+})}
+<div class="wrap page">
+<nav class="guide-toc" aria-label="فهرست">${GUIDE.map(([icon, title], i) => `<a href="#g${i + 1}">${icon} ${esc(title)}</a>`).join("")}<a href="#safe">⚠️ معامله‌ی امن</a></nav>
+<ol class="guide">${GUIDE.map(
+    ([icon, title, text, items], i) => `<li id="g${i + 1}"><span class="g-icon" aria-hidden="true">${icon}</span><div><h2>${esc(title)}</h2>${text ? `<p>${esc(text)}</p>` : ""}${
+      items.length ? `<ul>${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : ""
+    }</div></li>`,
+  ).join("")}</ol>
+<section class="guide-safe" id="safe"><h2>⚠️ معامله‌ی امن</h2><ul class="checks">${SAFETY.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></section>
+<section class="sell wide">${mascot(ctx, "handoff", "نیمو کتاب را به دست نفر بعدی می‌دهد", "mascot", 110)}<div><p>آماده‌ای؟ اولین کتابت رو زیر یک دقیقه ثبت کن.</p>${ctaButtons(ctx, "sell", "ثبت رایگان کتاب")}</div></section>
+</div>`;
+  return layout(ctx, {
+    title: "راهنمای نیمدار | خرید، فروش و اهدای کتاب دست‌دوم",
+    description: "راهنمای کامل نیمدار: ثبت کتاب، خرید، درخواست کتاب و هشدار، کتاب معلق، امتیاز، کانال و سایت، و نکته‌های معامله‌ی امن.",
+    path: "/help/",
+    body,
+    full: true,
+    jsonld: {
+      "@context": "https://schema.org",
+      "@type": "HowTo",
+      name: "راهنمای نیمدار",
+      inLanguage: "fa",
+      step: GUIDE.map(([, title, text, items]) => ({ "@type": "HowToStep", name: title, text: [text, ...items].filter(Boolean).join(" ") })),
+    },
+  });
+}
+
 function notFound(ctx) {
   return layout(ctx, {
     title: "صفحه پیدا نشد | نیمدار",
@@ -567,7 +639,7 @@ function notFound(ctx) {
 }
 
 function sitemap(ctx, books) {
-  const urls = ["/", ...listPages(books).map((p) => encodeURI(p.path)), ...books.map((b) => `/b/${b.id}/`)];
+  const urls = ["/", "/help/", ...listPages(books).map((p) => encodeURI(p.path)), ...books.map((b) => `/b/${b.id}/`)];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map((u) => `<url><loc>${esc(ctx.baseUrl + u)}</loc><lastmod>${ctx.generatedAt.slice(0, 10)}</lastmod></url>`).join("\n")}
@@ -734,6 +806,8 @@ export function build(data, { baseUrl, outDir }) {
     mkdirSync(join(outDir, ...pg.path.split("/").filter(Boolean)), { recursive: true });
     writeFileSync(join(outDir, ...pg.path.split("/").filter(Boolean), "index.html"), listPage(ctx, pg));
   }
+  mkdirSync(join(outDir, "help"), { recursive: true });
+  writeFileSync(join(outDir, "help", "index.html"), guidePage(ctx));
   mkdirSync(join(outDir, "sticker"), { recursive: true });
   writeFileSync(join(outDir, "sticker", "index.html"), stickerPage(ctx));
   writeFileSync(join(outDir, "sitemap.xml"), sitemap(ctx, data.books));

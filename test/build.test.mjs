@@ -210,3 +210,13 @@ test("تا تصویرهای نیمو آماده نیستند (mascot: false) ه�
   }
   assert.match(readFileSync(join(dir, "index.html"), "utf8"), /class="hero-logo"/);
 });
+
+test("صفحه‌ی راهنما: ساخته می‌شود، در sitemap و منو هست، و نکته‌های معامله‌ی امن را دارد", () => {
+  const html = read("help/index.html");
+  assert.match(html, /<title>راهنمای نیمدار/);
+  assert.match(html, /معامله‌ی امن/);
+  assert.match(html, /"@type":"HowTo"/);
+  assert.match(html, /start=sell/);
+  assert.match(read("sitemap.xml"), /\/help\/<\/loc>/);
+  assert.match(read("index.html"), /href="\/nimdar-site\/help\/">راهنما<\/a>/);
+});
