@@ -117,3 +117,13 @@ test("پروفایل عمومی: صفحه‌ی قفسه با noindex، لینک 
   assert.ok(!existsSync(join(out, "u", "../evil")));
   assert.ok(!existsSync(join(out, "evil")));
 });
+
+test("نظر برچسبی و پرسش و پاسخ روی صفحه‌ی کتاب، با escape", () => {
+  const html = read("b/1/index.html");
+  assert.match(html, /نظر ۴ خواننده/);
+  assert.match(html, /برای جمع‌بندی عالیه <b>۳<\/b>/);
+  assert.match(html, /<dt>برای کنکور ۱۴۰۶ هم خوبه؟<\/dt><dd>آره &lt;b&gt;کاملاً&lt;\/b&gt;<\/dd>/);
+  const other = read("b/7/index.html");
+  assert.doesNotMatch(other, /خواننده<\/h2>/);
+  assert.match(other, /هنوز سؤالی پرسیده نشده/);
+});

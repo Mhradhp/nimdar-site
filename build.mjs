@@ -145,6 +145,24 @@ function listingItem(ctx, l, i) {
   return `<li class="listing"><span class="num">${fa(i + 1)}</span><div><strong>${esc(p)}</strong> ${rating}<br><span class="muted">${esc(parts.join(" · "))}</span>${sellerHtml}</div></li>`;
 }
 
+/** نظر برچسبی خواننده‌ها (برچسب‌های ثابت؛ متن آزاد نیست) */
+function readerTags(b) {
+  const tags = (b.tags ?? []).slice(0, 6);
+  if (!tags.length) return "";
+  return `<h2>نظر ${fa(b.tag_voters ?? 0)} خواننده</h2>
+<p class="reader-tags">${tags.map((t) => `<span>${esc(t.label)} <b>${fa(t.n)}</b></span>`).join("")}</p>`;
+}
+
+/** پرسش و پاسخ‌هایی که ادمین تأیید کرده؛ پرسیدن و جواب دادن فقط از راه ربات */
+function qaSection(ctx, b) {
+  const qa = b.qa ?? [];
+  const ask = ctaButtons(ctx, `b_${b.id}`, "سؤال بپرس");
+  if (!qa.length) return `<h2>پرسش و پاسخ</h2><p class="muted">هنوز سؤالی پرسیده نشده. سؤالت رو از ربات بپرس تا کسانی که این کتاب رو داشتن جواب بدن.</p>${ask}`;
+  return `<h2>پرسش و پاسخ</h2>
+<dl class="qa">${qa.map((x) => `<dt>${esc(x.q)}</dt><dd>${esc(x.a)}</dd>`).join("")}</dl>
+<p class="muted small">جواب‌ها از کسانی است که این کتاب رو دارن یا داشتن.</p>${ask}`;
+}
+
 export function bookPage(ctx, b) {
   const prices = b.listings.filter((l) => l.price !== null && !l.gift).map((l) => l.price);
   const typical = median(prices);
@@ -201,6 +219,8 @@ ${ctaButtons(ctx, `b_${b.id}`, "پیام به فروشنده")}
     : `<p class="empty">فعلاً کسی این کتاب رو نداره. درخواست بده تا به محض ثبت شدنش خبرت کنیم.</p>
 ${ctaButtons(ctx, `b_${b.id}`, "دنبال این کتابم")}`
 }
+${readerTags(b)}
+${qaSection(ctx, b)}
 <section class="sell">
 <p>این کتاب رو داری؟ ثبت آگهی رایگانه${b.waiting ? ` و ${fa(b.waiting)} نفر همین الان منتظرشن` : ""}.</p>
 ${ctaButtons(ctx, "sell", "ثبت کتاب")}
