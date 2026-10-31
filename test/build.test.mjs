@@ -195,3 +195,9 @@ test("کاتالوگ خالی: صفحه‌ی اصلی پیام «اولین نف
   assert.match(html, /اولین نفر تو باش/);
   assert.match(html, /start=sell/);
 });
+
+test("آگهی ویژه برچسب «⭐ ویژه» دارد", () => {
+  const html = read("b/1/index.html");
+  assert.equal((html.match(/class="featured"/g) ?? []).length, 1);
+  assert.match(html, /listing is-featured/);
+});

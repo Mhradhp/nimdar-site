@@ -215,7 +215,8 @@ function listingItem(ctx, l, i) {
     ? `<br><span class="muted small">فروشنده: <a href="${ctx.base}/u/${esc(seller.code)}/">«${esc(seller.nickname)}»</a></span>`
     : "";
   const held = l.reserved ? ` <span class="reserved">رزرو شده</span>` : "";
-  return `<li class="listing"><span class="num">${fa(i + 1)}</span><div><strong>${esc(p)}</strong> ${rating}${held}<br><span class="muted">${esc(parts.join(" · "))}</span>${sellerHtml}</div></li>`;
+  const star = l.featured ? `<span class="featured">⭐ ویژه</span> ` : "";
+  return `<li class="listing${l.featured ? " is-featured" : ""}"><span class="num">${fa(i + 1)}</span><div>${star}<strong>${esc(p)}</strong> ${rating}${held}<br><span class="muted">${esc(parts.join(" · "))}</span>${sellerHtml}</div></li>`;
 }
 
 /** نظر برچسبی خواننده‌ها (برچسب‌های ثابت؛ متن آزاد نیست) */

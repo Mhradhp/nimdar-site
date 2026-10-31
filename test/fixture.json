@@ -34,7 +34,8 @@
           "created_at": "2026-10-29 10:00:00",
           "seller": "ABC234",
           "has_answers": 1,
-          "reserved": 1
+          "reserved": 1,
+          "featured": 1
         },
         {
           "condition": "like_new",
