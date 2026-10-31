@@ -179,10 +179,11 @@ test("پروفایل عمومی تعداد کتاب‌های خوانده‌شد
 
 test("گورخر دست‌به‌دست: تصویر اشتراک، favicon، و تصویر در ۴۰۴ و صفحه‌ی بدون آگهی", () => {
   const home = read("index.html");
-  assert.match(home, /og:image" content="https:\/\/mhradhp\.github\.io\/dast2dast-site\/assets\/mascot\/og\.jpg"/);
-  assert.match(home, /rel="icon" type="image\/png" href="\/dast2dast-site\/assets\/mascot\/favicon\.png"/);
+  assert.match(home, /og:image" content="https:\/\/mhradhp\.github\.io\/dast2dast-site\/assets\/brand\/og\.jpg"/);
+  assert.match(home, /rel="icon" type="image\/png" href="\/dast2dast-site\/assets\/brand\/favicon\.png"/);
+  assert.match(home, /class="wm">دست<span class="wm-be">/);
   assert.match(home, /assets\/mascot\/banner\.webp/);
   assert.match(read("404.html"), /assets\/mascot\/oops\.webp/);
   assert.match(read("b/7/index.html"), /assets\/mascot\/notfound\.webp/);
-  for (const f of ["og.jpg", "favicon.png", "banner.webp", "oops.webp", "bot/found.jpg"]) assert.ok(existsSync(join(out, "assets/mascot", f)), f);
+  for (const f of ["mascot/banner.webp", "mascot/oops.webp", "mascot/sticker/hello.webp", "brand/og.jpg", "brand/favicon.png", "fonts/Lalezar.woff2"]) assert.ok(existsSync(join(out, "assets", f)), f);
 });

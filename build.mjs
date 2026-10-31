@@ -81,6 +81,17 @@ function mascot(ctx, name, alt, cls = "mascot", size = 160) {
   return `<img class="${cls}" src="${ctx.base}/assets/mascot/${name}.webp" width="${size}" height="${size}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
 }
 
+/** لوگوی نوشتاری با فونت لاله‌زار؛ «به» نارنجی */
+function wordmark() {
+  return `<span class="wm">دست<span class="wm-be">‌به‌</span>دست</span>`;
+}
+
+/** دکمه‌ی «ثبت کتاب» در سربرگ (به ربات تلگرام) */
+function navCta(ctx) {
+  const l = botLinks(ctx.bots, "sell")[0];
+  return l ? `<a class="nav-cta" href="${esc(l.url)}" rel="nofollow">📚 ثبت رایگان کتاب</a>` : "";
+}
+
 function layout(ctx, { title, description, path, body, jsonld, noindex }) {
   const canonical = ctx.baseUrl + path;
   return `<!doctype html>
@@ -97,25 +108,30 @@ ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(canonical)}">
-<meta property="og:image" content="${esc(ctx.baseUrl)}/assets/mascot/og.jpg">
+<meta property="og:image" content="${esc(ctx.baseUrl)}/assets/brand/og.jpg">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" type="image/png" href="${ctx.base}/assets/mascot/favicon.png">
-<link rel="apple-touch-icon" href="${ctx.base}/assets/mascot/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="${ctx.base}/assets/brand/favicon.png">
+<link rel="apple-touch-icon" href="${ctx.base}/assets/brand/apple-touch-icon.png">
 <meta name="theme-color" content="#1F5C46">
 <link rel="preload" href="${ctx.base}/assets/fonts/Vazirmatn.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="${ctx.base}/assets/fonts/Lalezar.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${ctx.base}/assets/style.css">
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, "\\u003c")}</script>` : ""}
 </head>
 <body>
-<header class="top"><a class="brand" href="${ctx.base}/"><img src="${ctx.base}/assets/mascot/avatar.webp" width="40" height="40" alt="">دست‌به‌دست</a><span class="tag">کتاب دست‌دوم، از دست به دست</span></header>
+<header class="bar"><div class="top">
+<a class="brand" href="${ctx.base}/" aria-label="دست‌به‌دست، صفحه‌ی اصلی">${wordmark()}</a>
+<nav class="nav"><a href="${ctx.base}/">کتاب‌ها</a><a href="${ctx.base}/wanted/">الان کسی می‌خواد</a>${navCta(ctx)}</nav>
+</div></header>
 <main>
 ${body}
 </main>
-<footer>
-<p>به‌روزرسانی: ${esc(persianDate(ctx.generatedAt))}</p>
-<p>ثبت آگهی رایگانه. قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکنید.</p>
-</footer>
+<footer class="foot"><div class="foot-in">
+<div class="foot-brand">${wordmark()}<p>کتاب دست‌دوم، از یه دست به دست دیگه.<br>ثبت آگهی همیشه رایگانه.</p></div>
+<div class="foot-zebri"><img src="${ctx.base}/assets/mascot/hello.webp" width="88" height="88" alt="زبری، گورخر دست‌به‌دست" loading="lazy"><p>من زبری‌ام 🦓<br>کتاب‌ها رو به هم می‌رسونم.</p></div>
+<p class="foot-note">⚠️ قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکنید. · به‌روزرسانی: ${esc(persianDate(ctx.generatedAt))}</p>
+</div></footer>
 </body>
 </html>
 `;
@@ -263,10 +279,19 @@ export function indexPage(ctx, books) {
   const cats = Object.entries(CATEGORIES).filter(([k]) => books.some((b) => b.category === k));
   const body = `
 <section class="hero">
-<img class="hero-art" src="${ctx.base}/assets/mascot/banner.webp" width="825" height="407" alt="گورخر دست‌به‌دست در کتابخانه دست تکان می‌دهد">
-<h1>کتاب دست‌دوم بخر، بفروش، عوض کن</h1>
-<p>المپیاد، کنکور، درسی، کمک‌درسی و عمومی. برای هر کتاب یک صفحه: چند نفر دارن، چند نفر منتظرن، قیمت معمول چقدره.</p>
+<div class="hero-text">
+<p class="eyebrow">📚 المپیاد · کنکور · درسی · کمک‌درسی · هر کتاب دیگه</p>
+<h1>کتاب دست‌دوم <span>بخر، بفروش، عوض کن</span></h1>
+<p>برای هر کتاب یک صفحه: چند نفر دارن، چند نفر منتظرن، قیمت معمول چقدره. کتابت نبود؟ درخواست بده تا به محض اومدنش خبرت کنیم.</p>
 ${ctaButtons(ctx, "sell", "ثبت رایگان کتاب")}
+<ul class="hero-stats"><li><b>${fa(books.reduce((s, b) => s + b.listings.length, 0))}</b>نسخه‌ی موجود</li><li><b>${fa(books.length)}</b>کتاب</li><li><b>${fa(books.reduce((s, b) => s + b.waiting, 0))}</b>نفر منتظر</li></ul>
+</div>
+<img class="hero-art" src="${ctx.base}/assets/mascot/banner.webp" width="825" height="407" alt="زبری، گورخر دست‌به‌دست، در کتابخانه دست تکان می‌دهد">
+</section>
+<section class="how">
+<div><img src="${ctx.base}/assets/mascot/handoff.webp" width="96" height="96" alt="" loading="lazy"><b>کتابت رو ثبت کن</b><span>زیر یک دقیقه، رایگان</span></div>
+<div><img src="${ctx.base}/assets/mascot/found.webp" width="96" height="96" alt="" loading="lazy"><b>دنبال کتابی؟ درخواست بده</b><span>به محض اومدنش خبرت می‌کنیم</span></div>
+<div><img src="${ctx.base}/assets/mascot/gift.webp" width="96" height="96" alt="" loading="lazy"><b>کتاب معلق</b><span>کتابی که لازم نداری رو هدیه بده</span></div>
 </section>
 <section class="finder">
 <input id="q" type="search" placeholder="اسم کتاب، نویسنده یا ناشر…" aria-label="جستجو" autocomplete="off">
