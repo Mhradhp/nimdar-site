@@ -177,7 +177,7 @@ test("پروفایل عمومی تعداد کتاب‌های خوانده‌شد
   assert.match(read(`u/${code}/index.html`), /امسال ۷ کتاب خونده/);
 });
 
-test("فندق و لوگوی نیمدار: تصویر اشتراک، favicon، و تصویر در ۴۰۴ و صفحه‌ی بدون آگهی", () => {
+test("نیمو و لوگوی نیمدار: تصویر اشتراک، favicon، و تصویر در ۴۰۴ و صفحه‌ی بدون آگهی", () => {
   const home = read("index.html");
   assert.match(home, /og:image" content="https:\/\/mhradhp\.github\.io\/nimdar-site\/assets\/brand\/og\.jpg"/);
   assert.match(home, /rel="icon" type="image\/png" href="\/nimdar-site\/assets\/brand\/favicon\.png"/);
@@ -202,7 +202,7 @@ test("آگهی ویژه برچسب «⭐ ویژه» دارد", () => {
   assert.match(html, /listing is-featured/);
 });
 
-test("تا تصویرهای فندق آماده نیستند (mascot: false) هیچ تصویر شخصیتی در سایت نیست", () => {
+test("تا تصویرهای نیمو آماده نیستند (mascot: false) هیچ تصویر شخصیتی در سایت نیست", () => {
   const dir = mkdtempSync(join(tmpdir(), "site-nomascot-"));
   build({ ...data, mascot: false }, { baseUrl: "https://a.b/", outDir: dir });
   for (const f of ["index.html", "404.html", "b/7/index.html", "wanted/index.html"]) {
