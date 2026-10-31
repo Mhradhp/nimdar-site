@@ -161,3 +161,10 @@ footer p { margin: 2px 0; }
 .qa dt { font-weight: 700; margin-top: 12px; }
 .qa dt::before { content: "سؤال: "; color: var(--green); }
 .qa dd { margin: 4px 0 0; padding-inline-start: 12px; border-inline-start: 3px solid var(--line); }
+
+.browse-all { margin-top: 32px; }
+.browse-all h3 { font-size: 15px; margin: 16px 0 6px; color: var(--muted); }
+.browse { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
+.browse a { background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; text-decoration: none; font-size: 14px; }
+.browse a:hover { border-color: var(--green); }
+.wanted-link { display: inline-block; background: var(--orange-bg); color: var(--orange); border-radius: 8px; padding: 8px 14px; font-weight: 700; text-decoration: none; }

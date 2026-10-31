@@ -230,23 +230,24 @@ ${ctaButtons(ctx, "sell", "ثبت کتاب")}
   return layout(ctx, { title: `${b.title} دست‌دوم | دست‌به‌دست`, description, path: `/b/${b.id}/`, body, jsonld });
 }
 
-export function indexPage(ctx, books) {
-  // کتاب‌های دارای آگهی اول، بعد پرتقاضاها
-  const sorted = [...books].sort((a, b) => b.listings.length - a.listings.length || b.waiting - a.waiting || a.id - b.id);
-  const cats = Object.entries(CATEGORIES).filter(([k]) => books.some((b) => b.category === k));
-  const card = (b) => {
-    const prices = b.listings.filter((l) => l.price !== null).map((l) => l.price);
-    const gifts = b.listings.filter((l) => l.gift).length;
-    const supply = b.listings.length
-      ? `${fa(b.listings.length)} نسخه${prices.length ? ` · از ${price(Math.min(...prices))}` : ""}${gifts ? " · کتاب معلق" : ""}`
-      : "هنوز کسی نداره";
-    const key = searchKey([b.title, b.author, b.publisher].filter(Boolean).join(" "));
-    return `<li class="card" data-q="${esc(key)}" data-cat="${esc(b.category ?? "")}"><a href="${ctx.base}/b/${b.id}/">
+function bookCard(ctx, b) {
+  const prices = b.listings.filter((l) => l.price !== null).map((l) => l.price);
+  const gifts = b.listings.filter((l) => l.gift).length;
+  const supply = b.listings.length
+    ? `${fa(b.listings.length)} نسخه${prices.length ? ` · از ${price(Math.min(...prices))}` : ""}${gifts ? " · کتاب معلق" : ""}`
+    : "هنوز کسی نداره";
+  const key = searchKey([b.title, b.author, b.publisher].filter(Boolean).join(" "));
+  return `<li class="card" data-q="${esc(key)}" data-cat="${esc(b.category ?? "")}"><a href="${ctx.base}/b/${b.id}/">
 <strong>${esc(b.title)}</strong>
 <span class="muted">${esc([b.publisher, CATEGORIES[b.category]].filter(Boolean).join(" · "))}</span>
 <span class="supply${b.listings.length ? "" : " none"}">${esc(supply)}${b.waiting ? ` · ${fa(b.waiting)} منتظر` : ""}</span>
 </a></li>`;
-  };
+}
+
+export function indexPage(ctx, books) {
+  // کتاب‌های دارای آگهی اول، بعد پرتقاضاها
+  const sorted = [...books].sort((a, b) => b.listings.length - a.listings.length || b.waiting - a.waiting || a.id - b.id);
+  const cats = Object.entries(CATEGORIES).filter(([k]) => books.some((b) => b.category === k));
   const body = `
 <section class="hero">
 <h1>کتاب دست‌دوم بخر، بفروش، عوض کن</h1>
@@ -263,8 +264,9 @@ ${
     : ""
 }
 <p id="none" class="empty" hidden>چیزی پیدا نشد. توی ربات «کتابم نیست؟» رو بزن تا به محض ثبت شدنش خبرت کنیم.</p>
-<ul id="books" class="cards">${sorted.map(card).join("")}</ul>
+<ul id="books" class="cards">${sorted.map((b) => bookCard(ctx, b)).join("")}</ul>
 </section>
+${browseNav(ctx, books)}
 <script src="${ctx.base}/assets/search.js" defer></script>`;
   return layout(ctx, {
     title: "دست‌به‌دست | خرید، فروش و تبادل کتاب دست‌دوم",
@@ -322,12 +324,93 @@ function notFound(ctx) {
 }
 
 function sitemap(ctx, books) {
-  const urls = ["/", ...books.map((b) => `/b/${b.id}/`)];
+  const urls = ["/", ...listPages(books).map((p) => encodeURI(p.path)), ...books.map((b) => `/b/${b.id}/`)];
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map((u) => `<url><loc>${esc(ctx.baseUrl + u)}</loc><lastmod>${ctx.generatedAt.slice(0, 10)}</lastmod></url>`).join("\n")}
 </urlset>
 `;
+}
+
+// ---------- صفحه‌های فهرست (برای جستجوهایی مثل «کتاب دست دوم کنکور» یا «کتاب دست دوم شیراز») ----------
+
+/** نام فارسی به نام پوشه: فقط حرف و عدد، فاصله و نیم‌فاصله به «-» */
+export function slug(s) {
+  return String(s ?? "")
+    .trim()
+    .replace(/[\s\u200c]+/g, "-")
+    .replace(/[^\p{L}\p{N}-]/gu, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+const byListings = (a, b) => b.listings.length - a.listings.length || b.waiting - a.waiting || a.id - b.id;
+
+/** همه‌ی صفحه‌های فهرست: دسته، پایه، شهر، و تابلوی تقاضا */
+export function listPages(books) {
+  const pages = [];
+  for (const [k, v] of Object.entries(CATEGORIES)) {
+    const list = books.filter((b) => b.category === k);
+    if (list.length)
+      pages.push({ path: `/c/${k}/`, label: v, h1: `کتاب دست‌دوم ${v}`, books: list, kind: "cat",
+        intro: `خرید، فروش و تبادل کتاب دست‌دوم ${v}: ${fa(list.length)} کتاب، با قیمت معمول و تعداد منتظر هر کدوم.` });
+  }
+  const grades = new Map();
+  for (const b of books) if (b.grade && slug(b.grade)) grades.set(b.grade, [...(grades.get(b.grade) ?? []), b]);
+  for (const [g, list] of grades)
+    pages.push({ path: `/g/${slug(g)}/`, label: g, h1: `کتاب دست‌دوم ${g}`, books: list, kind: "grade",
+      intro: `کتاب‌های درسی، کمک‌درسی و کنکور ${g}، دست‌دوم و ارزون‌تر.` });
+  const cities = new Map();
+  for (const b of books) for (const c of new Set(b.listings.map((l) => l.city).filter(Boolean))) if (slug(c)) cities.set(c, [...(cities.get(c) ?? []), b]);
+  for (const [c, list] of cities)
+    pages.push({ path: `/city/${slug(c)}/`, label: c, h1: `کتاب دست‌دوم در ${c}`, books: list, kind: "city",
+      intro: `${fa(list.length)} کتاب که در ${c} برای فروش، تبادل یا اهدا ثبت شده. تحویل حضوری یا پستی.` });
+  const wanted = books.filter((b) => b.waiting > 0).sort((a, b) => b.waiting - a.waiting || a.id - b.id);
+  if (wanted.length)
+    pages.push({ path: "/wanted/", label: "الان کسی می‌خواد", h1: "این کتاب‌ها رو الان کسی می‌خواد", books: wanted, kind: "wanted",
+      intro: "اگه یکی از این کتاب‌ها رو داری، همین الان خریدار داره. ثبت آگهی رایگانه و به محض ثبت، به منتظرها خبر داده می‌شه." });
+  return pages;
+}
+
+function listPage(ctx, pg) {
+  const books = pg.kind === "wanted" ? pg.books : [...pg.books].sort(byListings);
+  const body = `
+<nav class="crumbs"><a href="${ctx.base}/">همه‌ی کتاب‌ها</a></nav>
+<h1>${esc(pg.h1)}</h1>
+<p class="muted">${esc(pg.intro)}</p>
+${pg.kind === "wanted" ? ctaButtons(ctx, "sell", "کتاب دارم، ثبتش می‌کنم") : ""}
+<ul class="cards">${books.map((b) => bookCard(ctx, b)).join("")}</ul>
+${pg.kind === "wanted" ? "" : `<section class="sell"><p>کتابت اینجا نیست؟ ثبت آگهی رایگانه.</p>${ctaButtons(ctx, "sell", "ثبت کتاب")}</section>`}`;
+  const title = pg.kind === "wanted" ? "کتاب‌هایی که الان خریدار دارن | دست‌به‌دست" : `${pg.h1} | خرید و فروش | دست‌به‌دست`;
+  return layout(ctx, {
+    title,
+    description: pg.intro,
+    path: pg.path,
+    body,
+    jsonld: {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      name: pg.h1,
+      itemListElement: books.slice(0, 50).map((b, i) => ({ "@type": "ListItem", position: i + 1, url: `${ctx.baseUrl}/b/${b.id}/`, name: b.title })),
+    },
+  });
+}
+
+/** پیوند به صفحه‌های فهرست از صفحه‌ی اصلی (برای کاربر و برای خزنده‌ی گوگل) */
+function browseNav(ctx, books) {
+  const pages = listPages(books);
+  const group = (kind, title) => {
+    const items = pages.filter((p) => p.kind === kind);
+    return items.length
+      ? `<h3>${title}</h3><p class="browse">${items.map((p) => `<a href="${ctx.base}${encodeURI(p.path)}">${esc(p.label)}</a>`).join("")}</p>`
+      : "";
+  };
+  const wanted = pages.find((p) => p.kind === "wanted");
+  return `<section class="browse-all">
+<h2>مرور کتاب‌ها</h2>
+${wanted ? `<p><a class="wanted-link" href="${ctx.base}/wanted/">${fa(wanted.books.length)} کتاب که الان کسی دنبالشه ←</a></p>` : ""}
+${group("cat", "دسته‌ها")}${group("grade", "پایه‌ها")}${group("city", "شهرها")}
+</section>`;
 }
 
 // ---------- build ----------
@@ -358,9 +441,14 @@ export function build(data, { baseUrl, outDir }) {
     mkdirSync(join(outDir, "u", p.code), { recursive: true });
     writeFileSync(join(outDir, "u", p.code, "index.html"), profilePage(ctx, p, data.books));
   }
+  const lists = listPages(data.books);
+  for (const pg of lists) {
+    mkdirSync(join(outDir, ...pg.path.split("/").filter(Boolean)), { recursive: true });
+    writeFileSync(join(outDir, ...pg.path.split("/").filter(Boolean), "index.html"), listPage(ctx, pg));
+  }
   writeFileSync(join(outDir, "sitemap.xml"), sitemap(ctx, data.books));
   writeFileSync(join(outDir, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${ctx.baseUrl}/sitemap.xml\n`);
-  return { pages: data.books.length + ctx.profiles.size + 1 };
+  return { pages: data.books.length + ctx.profiles.size + lists.length + 1 };
 }
 
 async function main() {

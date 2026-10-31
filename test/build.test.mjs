@@ -127,3 +127,31 @@ test("نظر برچسبی و پرسش و پاسخ روی صفحه‌ی کتاب�
   assert.doesNotMatch(other, /خواننده<\/h2>/);
   assert.match(other, /هنوز سؤالی پرسیده نشده/);
 });
+
+test("صفحه‌های فهرست: دسته، پایه، شهر و تابلوی تقاضا؛ در sitemap و صفحه‌ی اصلی", () => {
+  for (const p of ["c/olympiad", "c/konkur", "g/دهم", "city/تهران", "city/مشهد", "wanted"]) {
+    assert.ok(existsSync(join(out, p, "index.html")), p);
+  }
+  assert.ok(!existsSync(join(out, "c", "novel")), "دسته‌ی بدون کتاب صفحه ندارد");
+  const tehran = read("city/تهران/index.html");
+  assert.match(tehran, /<h1>کتاب دست‌دوم در تهران<\/h1>/);
+  assert.match(tehran, /href="\/dast2dast-site\/b\/1\/"/);
+  assert.doesNotMatch(tehran, /\/b\/7\//);
+  const wanted = read("wanted/index.html");
+  assert.ok(wanted.indexOf("/b/7/") < wanted.indexOf("/b/1/"), "بیشترین منتظر اول");
+  assert.match(wanted, /start=sell/);
+  const sm = read("sitemap.xml");
+  assert.match(sm, /\/c\/olympiad\//);
+  assert.match(sm, /\/city\/%D8%AA%D9%87%D8%B1%D8%A7%D9%86\//);
+  const home = read("index.html");
+  assert.match(home, /مرور کتاب‌ها/);
+  assert.match(home, /href="\/dast2dast-site\/city\/%D9%85%D8%B4%D9%87%D8%AF\/">مشهد<\/a>/);
+});
+
+test("slug فقط حرف و عدد نگه می‌دارد", async () => {
+  const { slug } = await import("../build.mjs");
+  assert.equal(slug("یازدهم تجربی"), "یازدهم-تجربی");
+  assert.equal(slug("../../etc"), "etc");
+  assert.equal(slug("<script>"), "script");
+  assert.equal(slug("  "), "");
+});
