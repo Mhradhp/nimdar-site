@@ -701,7 +701,7 @@ export function build(data, { baseUrl, outDir }) {
   const url = new URL(baseUrl.replace(/\/+$/, "") + "/");
   const ctx = {
     baseUrl: url.href.replace(/\/$/, ""),
-    base: url.pathname.replace(/\/$/, ""), // مثلاً /dast2dast-site برای سایت پروژه‌ی گیت‌هاب
+    base: url.pathname.replace(/\/$/, ""), // مثلاً /dastbedast-site برای سایت پروژه‌ی گیت‌هاب
     bots: data.bots ?? {},
     generatedAt: data.generated_at,
     profiles: new Map((data.profiles ?? []).filter((p) => CODE_RE.test(p.code ?? "")).map((p) => [p.code, p])),

@@ -184,6 +184,6 @@
       });
   }
 
-  window.__dast2dast = { parseIsbn: parseIsbn, zxingDetector: zxingDetector }; // برای تست
+  window.__dastbedast = { parseIsbn: parseIsbn, zxingDetector: zxingDetector }; // برای تست
   start();
 })();
