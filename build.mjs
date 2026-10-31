@@ -142,7 +142,8 @@ function listingItem(ctx, l, i) {
   const sellerHtml = seller
     ? `<br><span class="muted small">فروشنده: <a href="${ctx.base}/u/${esc(seller.code)}/">«${esc(seller.nickname)}»</a></span>`
     : "";
-  return `<li class="listing"><span class="num">${fa(i + 1)}</span><div><strong>${esc(p)}</strong> ${rating}<br><span class="muted">${esc(parts.join(" · "))}</span>${sellerHtml}</div></li>`;
+  const held = l.reserved ? ` <span class="reserved">رزرو شده</span>` : "";
+  return `<li class="listing"><span class="num">${fa(i + 1)}</span><div><strong>${esc(p)}</strong> ${rating}${held}<br><span class="muted">${esc(parts.join(" · "))}</span>${sellerHtml}</div></li>`;
 }
 
 /** نظر برچسبی خواننده‌ها (برچسب‌های ثابت؛ متن آزاد نیست) */

@@ -182,3 +182,5 @@ footer p { margin: 2px 0; }
   body { background: #fff; }
   .sticker { margin: 0; }
 }
+
+.reserved { background: var(--orange-bg); color: var(--orange); border-radius: 6px; padding: 1px 8px; font-size: 13px; }

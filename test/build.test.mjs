@@ -167,3 +167,7 @@ test("صفحه‌ی برچسب سفر کتاب: noindex، QR محلی، و بد�
   assert.match(js, /\^\[A-Z0-9\]\{4,12\}\$/); // کد اعتبارسنجی می‌شود
   assert.doesNotMatch(read("sitemap.xml"), /sticker/);
 });
+
+test("آگهی رزروشده برچسب دارد", () => {
+  assert.equal((read("b/1/index.html").match(/class="reserved"/g) ?? []).length, 1);
+});
