@@ -76,6 +76,11 @@ function botLinks(bots, start) {
 
 // ---------- pages ----------
 
+/** تصویر گورخر دست‌به‌دست (assets/mascot/<name>.webp)؛ متن alt برای دسترس‌پذیری و گوگل */
+function mascot(ctx, name, alt, cls = "mascot", size = 160) {
+  return `<img class="${cls}" src="${ctx.base}/assets/mascot/${name}.webp" width="${size}" height="${size}" alt="${esc(alt)}" loading="lazy" decoding="async">`;
+}
+
 function layout(ctx, { title, description, path, body, jsonld, noindex }) {
   const canonical = ctx.baseUrl + path;
   return `<!doctype html>
@@ -92,13 +97,18 @@ ${noindex ? '<meta name="robots" content="noindex">' : ""}
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(description)}">
 <meta property="og:url" content="${esc(canonical)}">
+<meta property="og:image" content="${esc(ctx.baseUrl)}/assets/mascot/og.jpg">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="${ctx.base}/assets/mascot/favicon.png">
+<link rel="apple-touch-icon" href="${ctx.base}/assets/mascot/apple-touch-icon.png">
 <meta name="theme-color" content="#1F5C46">
 <link rel="preload" href="${ctx.base}/assets/fonts/Vazirmatn.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="${ctx.base}/assets/style.css">
 ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld).replace(/</g, "\\u003c")}</script>` : ""}
 </head>
 <body>
-<header class="top"><a class="brand" href="${ctx.base}/">دست‌به‌دست</a><span class="tag">کتاب دست‌دوم، از دست به دست</span></header>
+<header class="top"><a class="brand" href="${ctx.base}/"><img src="${ctx.base}/assets/mascot/avatar.webp" width="40" height="40" alt="">دست‌به‌دست</a><span class="tag">کتاب دست‌دوم، از دست به دست</span></header>
 <main>
 ${body}
 </main>
@@ -157,8 +167,9 @@ function readerTags(b) {
 /** پرسش و پاسخ‌هایی که ادمین تأیید کرده؛ پرسیدن و جواب دادن فقط از راه ربات */
 function qaSection(ctx, b) {
   const qa = b.qa ?? [];
+  const art = mascot(ctx, "thinking", "گورخر دست‌به‌دست فکر می‌کند", "mascot side", 110);
   const ask = ctaButtons(ctx, `b_${b.id}`, "سؤال بپرس");
-  if (!qa.length) return `<h2>پرسش و پاسخ</h2><p class="muted">هنوز سؤالی پرسیده نشده. سؤالت رو از ربات بپرس تا کسانی که این کتاب رو داشتن جواب بدن.</p>${ask}`;
+  if (!qa.length) return `<h2>پرسش و پاسخ</h2>${art}<p class="muted">هنوز سؤالی پرسیده نشده. سؤالت رو از ربات بپرس تا کسانی که این کتاب رو داشتن جواب بدن.</p>${ask}`;
   return `<h2>پرسش و پاسخ</h2>
 <dl class="qa">${qa.map((x) => `<dt>${esc(x.q)}</dt><dd>${esc(x.a)}</dd>`).join("")}</dl>
 <p class="muted small">جواب‌ها از کسانی است که این کتاب رو دارن یا داشتن.</p>${ask}`;
@@ -217,12 +228,13 @@ ${
     ? `<h2>آگهی‌ها</h2><ol class="listings">${b.listings.map((l, i) => listingItem(ctx, l, i)).join("")}</ol>
 ${ctaButtons(ctx, `b_${b.id}`, "پیام به فروشنده")}
 <p class="muted small">گفتگو با فروشنده از طریق ربات انجام می‌شه؛ آیدی و شماره‌ی کسی نمایش داده نمی‌شه.</p>`
-    : `<p class="empty">فعلاً کسی این کتاب رو نداره. درخواست بده تا به محض ثبت شدنش خبرت کنیم.</p>
+    : `<div class="say">${mascot(ctx, "notfound", "گورخر دست‌به‌دست شانه بالا می‌اندازد")}<p class="empty">فعلاً کسی این کتاب رو نداره. درخواست بده تا به محض ثبت شدنش خبرت کنیم.</p></div>
 ${ctaButtons(ctx, `b_${b.id}`, "دنبال این کتابم")}`
 }
 ${readerTags(b)}
 ${qaSection(ctx, b)}
 <section class="sell">
+${mascot(ctx, "handoff", "گورخر دست‌به‌دست کتابی را به دست دیگری می‌دهد", "mascot side", 120)}
 <p>این کتاب رو داری؟ ثبت آگهی رایگانه${b.waiting ? ` و ${fa(b.waiting)} نفر همین الان منتظرشن` : ""}.</p>
 ${ctaButtons(ctx, "sell", "ثبت کتاب")}
 </section>
@@ -251,6 +263,7 @@ export function indexPage(ctx, books) {
   const cats = Object.entries(CATEGORIES).filter(([k]) => books.some((b) => b.category === k));
   const body = `
 <section class="hero">
+<img class="hero-art" src="${ctx.base}/assets/mascot/banner.webp" width="825" height="407" alt="گورخر دست‌به‌دست در کتابخانه دست تکان می‌دهد">
 <h1>کتاب دست‌دوم بخر، بفروش، عوض کن</h1>
 <p>المپیاد، کنکور، درسی، کمک‌درسی و عمومی. برای هر کتاب یک صفحه: چند نفر دارن، چند نفر منتظرن، قیمت معمول چقدره.</p>
 ${ctaButtons(ctx, "sell", "ثبت رایگان کتاب")}
@@ -320,7 +333,7 @@ function notFound(ctx) {
     title: "صفحه پیدا نشد | دست‌به‌دست",
     description: "این صفحه وجود نداره.",
     path: "/404.html",
-    body: `<p class="empty">این صفحه وجود نداره، یا آگهی‌های این کتاب تموم شدن. <a href="${ctx.base}/">همه‌ی کتاب‌ها</a></p>`,
+    body: `<div class="say">${mascot(ctx, "oops", "گورخر دست‌به‌دست سرش را گرفته")}<p class="empty">این صفحه وجود نداره، یا آگهی‌های این کتاب تموم شدن. <a href="${ctx.base}/">همه‌ی کتاب‌ها</a></p></div>`,
   });
 }
 
@@ -377,6 +390,7 @@ function listPage(ctx, pg) {
   const books = pg.kind === "wanted" ? pg.books : [...pg.books].sort(byListings);
   const body = `
 <nav class="crumbs"><a href="${ctx.base}/">همه‌ی کتاب‌ها</a></nav>
+${pg.kind === "wanted" ? mascot(ctx, "search", "گورخر دست‌به‌دست با ذره‌بین", "mascot side", 130) : ""}
 <h1>${esc(pg.h1)}</h1>
 <p class="muted">${esc(pg.intro)}</p>
 ${pg.kind === "wanted" ? ctaButtons(ctx, "sell", "کتاب دارم، ثبتش می‌کنم") : ""}

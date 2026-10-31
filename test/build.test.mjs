@@ -176,3 +176,13 @@ test("پروفایل عمومی تعداد کتاب‌های خوانده‌شد
   const code = data.profiles[0].code;
   assert.match(read(`u/${code}/index.html`), /امسال ۷ کتاب خونده/);
 });
+
+test("گورخر دست‌به‌دست: تصویر اشتراک، favicon، و تصویر در ۴۰۴ و صفحه‌ی بدون آگهی", () => {
+  const home = read("index.html");
+  assert.match(home, /og:image" content="https:\/\/mhradhp\.github\.io\/dast2dast-site\/assets\/mascot\/og\.jpg"/);
+  assert.match(home, /rel="icon" type="image\/png" href="\/dast2dast-site\/assets\/mascot\/favicon\.png"/);
+  assert.match(home, /assets\/mascot\/banner\.webp/);
+  assert.match(read("404.html"), /assets\/mascot\/oops\.webp/);
+  assert.match(read("b/7/index.html"), /assets\/mascot\/notfound\.webp/);
+  for (const f of ["og.jpg", "favicon.png", "banner.webp", "oops.webp", "bot/found.jpg"]) assert.ok(existsSync(join(out, "assets/mascot", f)), f);
+});

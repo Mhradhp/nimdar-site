@@ -184,3 +184,17 @@ footer p { margin: 2px 0; }
 }
 
 .reserved { background: var(--orange-bg); color: var(--orange); border-radius: 6px; padding: 1px 8px; font-size: 13px; }
+
+/* گورخر دست‌به‌دست */
+.brand { display: inline-flex; align-items: center; gap: 8px; }
+.brand img { border-radius: 50%; }
+.top { align-items: center; }
+.hero { overflow: hidden; }
+.hero-art { display: block; width: calc(100% + 40px); height: auto; margin: -20px -20px 14px; border-radius: 16px 16px 0 0; }
+.mascot { display: block; height: auto; max-width: 160px; margin: 8px auto; }
+.mascot.side { float: left; max-width: 120px; margin: 0 0 8px 12px; }
+.say { display: flex; align-items: center; gap: 12px; }
+.say .mascot { flex: none; width: 120px; margin: 0; }
+.say .empty { flex: 1; }
+.sell::after { content: ""; display: block; clear: both; }
+@media (max-width: 480px) { .mascot.side { max-width: 90px; } .say { flex-direction: column; text-align: center; } }
