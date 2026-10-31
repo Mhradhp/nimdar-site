@@ -413,6 +413,31 @@ ${group("cat", "دسته‌ها")}${group("grade", "پایه‌ها")}${group("c
 </section>`;
 }
 
+// ---------- برچسب سفر کتاب (QR) ----------
+
+/** صفحه‌ی چاپ برچسب: ?c=<کد نسخه>&t=<اسم کتاب>. QR در خود مرورگر ساخته می‌شود و به ربات (?start=k_<کد>) لینک می‌دهد. */
+function stickerPage(ctx) {
+  const body = `
+<section class="sticker-tool">
+<h1>برچسب سفر کتاب</h1>
+<p class="muted no-print">این برچسب رو چاپ کن و بچسبون داخل جلد کتاب. هر کی اسکنش کنه، می‌بینه این نسخه از کجاها گذشته و بعد از خوندن می‌تونه بدش به نفر بعدی.</p>
+<div id="sticker" class="sticker" data-bot="${esc(ctx.bots.tg ?? "")}" hidden>
+<div id="qr" class="qr"></div>
+<div class="sticker-text">
+<strong>این کتاب داره سفر می‌کنه!</strong>
+<span id="title" class="sticker-title"></span>
+<span>اسکن کن ببین از کجاها گذشته. خوندیش؟ بدش به نفر بعدی.</span>
+<span class="sticker-code">کد: <b id="code"></b> · دست‌به‌دست</span>
+</div>
+</div>
+<p id="bad" class="empty" hidden>کد برچسب درست نیست. لینک رو از ربات دوباره بگیر.</p>
+<p class="no-print"><button id="print" class="btn" type="button">چاپ برچسب</button></p>
+</section>
+<script src="${ctx.base}/assets/vendor/qrcode.min.js"></script>
+<script src="${ctx.base}/assets/sticker.js"></script>`;
+  return layout(ctx, { title: "برچسب سفر کتاب | دست‌به‌دست", description: "برچسب QR برای نسخه‌ای که دست‌به‌دست می‌شود.", path: "/sticker/", body, noindex: true });
+}
+
 // ---------- build ----------
 
 export function build(data, { baseUrl, outDir }) {
@@ -446,6 +471,8 @@ export function build(data, { baseUrl, outDir }) {
     mkdirSync(join(outDir, ...pg.path.split("/").filter(Boolean)), { recursive: true });
     writeFileSync(join(outDir, ...pg.path.split("/").filter(Boolean), "index.html"), listPage(ctx, pg));
   }
+  mkdirSync(join(outDir, "sticker"), { recursive: true });
+  writeFileSync(join(outDir, "sticker", "index.html"), stickerPage(ctx));
   writeFileSync(join(outDir, "sitemap.xml"), sitemap(ctx, data.books));
   writeFileSync(join(outDir, "robots.txt"), `User-agent: *\nAllow: /\nSitemap: ${ctx.baseUrl}/sitemap.xml\n`);
   return { pages: data.books.length + ctx.profiles.size + lists.length + 1 };

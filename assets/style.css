@@ -168,3 +168,17 @@ footer p { margin: 2px 0; }
 .browse a { background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; text-decoration: none; font-size: 14px; }
 .browse a:hover { border-color: var(--green); }
 .wanted-link { display: inline-block; background: var(--orange-bg); color: var(--orange); border-radius: 8px; padding: 8px 14px; font-weight: 700; text-decoration: none; }
+
+.sticker { display: flex; gap: 12px; align-items: center; width: 9cm; max-width: 100%; border: 2px dashed var(--green); border-radius: 10px; padding: 10px; background: #fff; margin: 16px 0; }
+.sticker[hidden] { display: none; }
+.sticker .qr { width: 3.2cm; flex: none; }
+.sticker .qr svg { width: 100%; height: auto; display: block; }
+.sticker-text { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--ink); }
+.sticker-text strong { color: var(--green); font-size: 14px; }
+.sticker-title { font-weight: 700; }
+.sticker-code { color: var(--muted); }
+@media print {
+  .top, footer, .no-print, .crumbs { display: none !important; }
+  body { background: #fff; }
+  .sticker { margin: 0; }
+}

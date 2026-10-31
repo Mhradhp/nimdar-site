@@ -155,3 +155,15 @@ test("slug فقط حرف و عدد نگه می‌دارد", async () => {
   assert.equal(slug("<script>"), "script");
   assert.equal(slug("  "), "");
 });
+
+test("صفحه‌ی برچسب سفر کتاب: noindex، QR محلی، و بدون درج مستقیم ورودی آدرس در HTML", () => {
+  const html = read("sticker/index.html");
+  assert.match(html, /<meta name="robots" content="noindex">/);
+  assert.match(html, /data-bot="dast2dast_bot"/);
+  assert.match(html, /assets\/vendor\/qrcode\.min\.js/);
+  assert.ok(existsSync(join(out, "assets/vendor/QRCODE-LICENSE.txt")));
+  const js = read("assets/sticker.js");
+  assert.match(js, /textContent = title/); // اسم کتاب از آدرس فقط به‌صورت متن
+  assert.match(js, /\^\[A-Z0-9\]\{4,12\}\$/); // کد اعتبارسنجی می‌شود
+  assert.doesNotMatch(read("sitemap.xml"), /sticker/);
+});
