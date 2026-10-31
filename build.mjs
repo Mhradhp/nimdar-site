@@ -173,7 +173,7 @@ ${ctaButtons(ctx, "sell", "ثبت رایگان کتاب")}
 <p class="socials">${bot ? `<a href="${esc(bot.url)}" rel="nofollow">🤖 ربات ${esc(bot.label)}</a>` : ""}${ch.map((c) => `<a href="${esc(c.url)}" rel="noopener">📣 ${esc(c.label)}</a>`).join("")}</p></div>
 ${cats.length ? `<div><h3>دسته‌ها</h3><ul>${cats.slice(0, 8).map(([k, v]) => `<li><a href="${ctx.base}/c/${k}/">${esc(v)}</a></li>`).join("")}</ul></div>` : ""}
 ${cities.length ? `<div><h3>شهرها</h3><ul>${cities.slice(0, 8).map((c) => `<li><a href="${ctx.base}${encodeURI(`/city/${slug(c)}/`)}">${esc(c)}</a></li>`).join("")}</ul></div>` : ""}
-<div><h3>نیمدار</h3><ul><li><a href="${ctx.base}/wanted/">کتاب‌هایی که خریدار دارن</a></li><li><a href="${ctx.base}/#how">چطور کار می‌کنه</a></li><li><a href="${ctx.base}/#gift">کتاب معلق</a></li><li><a href="${ctx.base}/#safe">معامله‌ی امن</a></li><li><a href="${ctx.base}/help/">راهنمای کامل</a></li><li><a href="${ctx.base}/#faq">سؤالات پرتکرار</a></li><li><a href="${ctx.base}/scan/">اسکن بارکد</a></li></ul></div>
+<div><h3>نیمدار</h3><ul><li><a href="${ctx.base}/wanted/">کتاب‌هایی که خریدار دارن</a></li><li><a href="${ctx.base}/#how">چطور کار می‌کنه</a></li><li><a href="${ctx.base}/#gift">کتاب معلق</a></li><li><a href="${ctx.base}/#safe">معامله‌ی امن</a></li><li><a href="${ctx.base}/help/">راهنمای کامل</a></li>${botLinks(ctx.bots, "support")[0] ? `<li><a href="${esc(botLinks(ctx.bots, "support")[0].url)}" rel="nofollow">✉️ نظر، پیشنهاد یا سؤال</a></li>` : ""}<li><a href="${ctx.base}/#faq">سؤالات پرتکرار</a></li><li><a href="${ctx.base}/scan/">اسکن بارکد</a></li></ul></div>
 </div>
 <div class="foot-bottom"><div class="wrap">
 <p class="foot-note">⚠️ قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکنید. · فایل PDF کتاب ممنوعه. · به‌روزرسانی: ${esc(persianDate(ctx.generatedAt))}</p>
@@ -352,6 +352,7 @@ const FAQ = [
   ["کتاب معلق چیه؟", "کتابی که صاحبش رایگان هدیه می‌ده. هر کی لازمش داره یه جمله می‌نویسه و خود اهداکننده انتخاب می‌کنه کتاب به کی برسه."],
   ["پول رو چطور بدم؟", "معامله مستقیم بین خودتونه، حضوری یا پستی. قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکنید."],
   ["قیمت مناسب رو از کجا بفهمم؟", "هر صفحه‌ی کتاب «قیمت معمول» رو از روی آگهی‌های واقعی نشون می‌ده. موقع ثبت هم ربات قیمت پیشنهادی می‌ده."],
+  ["سؤال، نظر یا پیشنهاد دارم؛ کجا بگم؟", "توی ربات «✉️ پیام به پشتیبانی» رو بزن (یا از پانویس همین سایت). پیامت مستقیم به تیم نیمدار می‌رسه و جوابش رو توی ربات می‌گیری، حتی اگه هنوز ثبت‌نام نکرده باشی."],
   ["فایل PDF کتاب هم می‌شه گذاشت؟", "نه. اینجا فقط کتاب کاغذی واقعی دست‌به‌دست می‌شه؛ آگهی و درخواست PDF حذف می‌شه."],
 ];
 
@@ -582,6 +583,7 @@ const GUIDE = [
   ]],
   ["📣", "کانال", "هر روز ۱۹:۰۰ آگهی‌های تازه، هر شب ۲۱:۰۰ «کی داره؟» (کتاب‌هایی که خریدار دارن ولی کسی نداره) و پنجشنبه‌ها «کتاب‌های پرتقاضا». دکمه‌ی زیر هر پست صفحه‌ی همون کتاب رو توی ربات باز می‌کنه.", []],
   ["🌐", "سایت", "همه‌ی کتاب‌ها با جستجو و دسته‌بندی، بدون نیاز به تلگرام. برای پیام دادن یا ثبت کتاب، دکمه‌های سایت تو رو به ربات می‌برن.", []],
+  ["✉️", "سؤال، نظر یا پیشنهاد", "توی ربات «پیام به پشتیبانی» رو بزن (از «پروفایل من» یا زیر «راهنما»). پیامت مستقیم به تیم نیمدار می‌رسه و جواب رو همون‌جا می‌گیری، حتی پیش از ثبت‌نام.", []],
 ];
 const SAFETY = [
   "قبل از دیدن کتاب، پیش‌پرداخت کارت‌به‌کارت نکن.",
@@ -600,7 +602,7 @@ ${pageHead(ctx, {
   crumbs: [{ label: "راهنما" }],
   title: "راهنمای نیمدار",
   sub: `<p class="muted">هر چی برای خرید، فروش، تبادل و اهدای کتاب دست‌دوم توی ربات، کانال و سایت نیمدار لازمه، یک‌جا.</p>
-<div class="cta">${bot ? `<a class="btn" href="${esc(bot.url)}" rel="nofollow">شروع در ربات</a>` : ""}${ch.map((c) => `<a class="btn btn-alt" href="${esc(c.url)}" rel="noopener">📣 ${esc(c.label)}</a>`).join("")}</div>`,
+<div class="cta">${bot ? `<a class="btn" href="${esc(bot.url)}" rel="nofollow">شروع در ربات</a>` : ""}${botLinks(ctx.bots, "support")[0] ? `<a class="btn btn-alt" href="${esc(botLinks(ctx.bots, "support")[0].url)}" rel="nofollow">✉️ پیام به ما</a>` : ""}${ch.map((c) => `<a class="btn btn-alt" href="${esc(c.url)}" rel="noopener">📣 ${esc(c.label)}</a>`).join("")}</div>`,
   art: mascot(ctx, "reading", "نیمو کتاب می‌خواند", "mascot head-art", 140),
 })}
 <div class="wrap page">

@@ -220,3 +220,8 @@ test("صفحه‌ی راهنما: ساخته می‌شود، در sitemap و م�
   assert.match(read("sitemap.xml"), /\/help\/<\/loc>/);
   assert.match(read("index.html"), /href="\/nimdar-site\/help\/">راهنما<\/a>/);
 });
+
+test("لینک پیام به پشتیبانی در پانویس و صفحه‌ی راهنما", () => {
+  assert.match(read("index.html"), /start=support/);
+  assert.match(read("help/index.html"), /start=support/);
+});
