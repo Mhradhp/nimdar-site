@@ -283,7 +283,7 @@ export function profilePage(ctx, p, books) {
   const mine = [];
   for (const b of books) for (const l of b.listings) if (l.seller === p.code) mine.push({ b, l });
   const rating = p.rating ? `★${fa(String(p.rating.avg).replace(".", "٫"))} (${fa(p.rating.count)} رأی)` : null;
-  const facts = [p.city, rating, p.stats?.sold ? `${fa(p.stats.sold)} فروش` : null, p.stats?.given ? `${fa(p.stats.given)} اهدا` : null].filter(Boolean);
+  const facts = [p.city, rating, p.stats?.sold ? `${fa(p.stats.sold)} فروش` : null, p.stats?.given ? `${fa(p.stats.given)} اهدا` : null, p.stats?.read_this_year ? `امسال ${fa(p.stats.read_this_year)} کتاب خونده` : null].filter(Boolean);
   const body = `
 <nav class="crumbs"><a href="${ctx.base}/">همه‌ی کتاب‌ها</a></nav>
 <article class="book">

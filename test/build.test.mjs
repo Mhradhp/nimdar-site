@@ -171,3 +171,8 @@ test("صفحه‌ی برچسب سفر کتاب: noindex، QR محلی، و بد�
 test("آگهی رزروشده برچسب دارد", () => {
   assert.equal((read("b/1/index.html").match(/class="reserved"/g) ?? []).length, 1);
 });
+
+test("پروفایل عمومی تعداد کتاب‌های خوانده‌شده‌ی امسال را نشان می‌دهد", () => {
+  const code = data.profiles[0].code;
+  assert.match(read(`u/${code}/index.html`), /امسال ۷ کتاب خونده/);
+});
