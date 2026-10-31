@@ -93,7 +93,7 @@ function navCta(ctx) {
   return l ? `<a class="nav-cta" href="${esc(l.url)}" rel="nofollow">📚 ثبت رایگان کتاب</a>` : "";
 }
 
-/** لینک کانال (فقط آیدی عمومی، مثل @dastbedast_org) */
+/** لینک کانال (فقط آیدی عمومی، مثل @nimdarbook) */
 function channelLinks(ctx) {
   const out = [];
   const tg = String(ctx.channels.tg ?? "");
